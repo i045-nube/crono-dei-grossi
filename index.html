@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crono dei Grossi">
+<meta name="description" content="Il timer per gli allenamenti di Andrea Righetti Calisthenics Academy: EMOM, TABATA, TIMER e CRONO.">
+<title>Crono dei Grossi</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icona-180.png">
+<link rel="icon" type="image/png" href="assets/icona-192.png">
+<link rel="preload" href="assets/Factoria-W00-Black.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/acciaio.css">
+<link rel="stylesheet" href="css/acciaio-v2.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body class="p-acciaio v2">
+
+<!-- HOME -->
+<section class="screen home" id="home">
+  <div class="bg"></div><div class="fx"></div>
+  <div class="ui">
+    <header class="top">
+      <button class="icon-btn" data-go="set" aria-label="Impostazioni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-gear"/></svg></button>
+      <button class="icon-btn voice-btn" aria-label="Voci attive" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-sound"/></svg></button>
+    </header>
+    <img class="logo" src="assets/logo-dark-800.png" alt="Andrea Righetti Calisthenics Academy">
+    <section class="brand"><h1 class="title"><span class="t1">CRONO</span><span class="t2">DEI GROSSI</span></h1></section>
+    <nav class="modes">
+      <button class="mode m-emom" data-mode="emom"><span class="mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.5h-4.5"/><path d="M12 8v4l2.8 1.8"/></svg></span><span class="mode-name">EMOM</span></button>
+      <button class="mode m-tabata" data-mode="tabata"><span class="mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13.5 2.5L4.5 14h7l-1 7.5 9-11.5h-7z"/></svg></span><span class="mode-name">TABATA</span></button>
+      <button class="mode m-timer" data-mode="timer"><span class="mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h11M6.5 21h11M8 3v3.5L12 12l-4 5.5V21M16 3v3.5L12 12l4 5.5V21"/></svg></span><span class="mode-name">TIMER</span></button>
+      <button class="mode m-crono" data-mode="crono"><span class="mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M9.5 2.5h5M12 2.5V6M18.5 6l1.5-1.5"/></svg></span><span class="mode-name">CRONO</span></button>
+    </nav>
+    <p class="motto">ZERO SCUSE!</p>
+    <footer class="foot"><a href="https://www.andrearighetti.fit/" target="_blank" rel="noopener">ANDREARIGHETTI.FIT</a></footer>
+  </div>
+</section>
+
+<!-- CONTATORE -->
+<section class="screen run" id="run" hidden>
+  <div class="bg"></div><div class="fx"></div>
+  <div class="ui">
+    <header class="top bar">
+      <button class="icon-btn" data-back aria-label="Indietro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <img class="logo" src="assets/logo-dark-800.png" alt="Andrea Righetti Calisthenics Academy">
+      <button class="icon-btn voice-btn" aria-label="Voci attive" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-sound"/></svg></button>
+    </header>
+    <div class="clock">
+      <h2 class="run-mode" id="run-name">EMOM</h2>
+      <div class="ring">
+        <svg viewBox="0 0 200 200"><defs>
+          <linearGradient id="gy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3a6"/><stop offset=".45" stop-color="#ffd60a"/><stop offset="1" stop-color="#ff9f00"/></linearGradient>
+          <linearGradient id="gb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2f7ff"/><stop offset=".45" stop-color="#4cc9ff"/><stop offset="1" stop-color="#0a84ff"/></linearGradient>
+        </defs><g class="ticks" id="ticks"></g>
+        <circle class="track" cx="100" cy="100" r="88"/>
+        <circle class="prog" id="prog" cx="100" cy="100" r="88" stroke-dasharray="552.92" stroke-dashoffset="0"/></svg>
+        <span class="phase" id="phase"></span>
+        <div class="digits" id="digits"></div>
+        <div class="round" id="round"><b id="round-n">1</b>/ <span id="round-t">10</span></div>
+      </div>
+    </div>
+    <div class="segments" id="segments"></div>
+    <div class="controls">
+      <button class="ctl ctl-reset" id="btn-reset"><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4.5H9"/></svg></span><span>Reset</span></button>
+      <button class="ctl ctl-main" id="btn-main"><span class="knob"><svg viewBox="0 0 24 24" fill="currentColor"><use id="main-ico" href="#i-play"/></svg></span><span id="main-label">Start</span></button>
+      <button class="ctl ctl-set" id="btn-set"><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-gear"/></svg></span><span>Imposta</span></button>
+    </div>
+  </div>
+
+  <!-- fine esercizio -->
+  <div class="boom" id="boom" hidden>
+    <canvas class="boom-fx" id="boom-fx"></canvas>
+    <div class="flash"></div>
+    <div class="wave"></div>
+    <div class="fire"></div>
+    <svg class="bomb" viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <radialGradient id="b-body" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#8a8f99"/><stop offset=".18" stop-color="#3a3d44"/><stop offset=".55" stop-color="#15161a"/><stop offset="1" stop-color="#000"/></radialGradient>
+        <radialGradient id="b-rim" cx="50%" cy="50%" r="50%"><stop offset=".78" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#6b7fa8" stop-opacity=".55"/></radialGradient>
+        <linearGradient id="b-cap" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b3e45"/><stop offset=".35" stop-color="#c9ccd1"/><stop offset=".6" stop-color="#6b6f76"/><stop offset="1" stop-color="#202226"/></linearGradient>
+        <radialGradient id="b-spark" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#fff27a"/><stop offset=".7" stop-color="#ff9f00" stop-opacity=".8"/><stop offset="1" stop-color="#ff5a00" stop-opacity="0"/></radialGradient>
+      </defs>
+      <path class="fuse" d="M78 30 C 86 18, 96 22, 98 12" fill="none" stroke="#c8a36a" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M78 30 C 86 18, 96 22, 98 12" fill="none" stroke="#7a5a2e" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="2 3" opacity=".6"/>
+      <circle cx="54" cy="70" r="40" fill="url(#b-body)"/>
+      <circle cx="54" cy="70" r="40" fill="url(#b-rim)"/>
+      <ellipse cx="40" cy="52" rx="12" ry="7" fill="#fff" opacity=".35" transform="rotate(-35 40 52)"/>
+      <ellipse cx="36" cy="49" rx="4" ry="2.4" fill="#fff" opacity=".8" transform="rotate(-35 36 49)"/>
+      <g transform="rotate(38 76 36)"><rect x="66" y="26" width="20" height="14" rx="3" fill="url(#b-cap)"/><rect x="66" y="26" width="20" height="3" rx="1.5" fill="#fff" opacity=".35"/></g>
+      <circle class="spark" cx="98" cy="12" r="10" fill="url(#b-spark)"/>
+    </svg>
+    <div class="cloud">
+      <svg viewBox="0 0 320 220" aria-hidden="true">
+        <g class="puffs" fill="#fff" stroke="#111" stroke-width="7" stroke-linejoin="round">
+          <circle cx="70" cy="130" r="52"/><circle cx="120" cy="80" r="60"/><circle cx="190" cy="72" r="64"/><circle cx="252" cy="118" r="54"/>
+          <circle cx="220" cy="160" r="46"/><circle cx="150" cy="166" r="50"/><circle cx="92" cy="170" r="38"/>
+        </g>
+        <g fill="#fff"><circle cx="70" cy="130" r="48.5"/><circle cx="120" cy="80" r="56.5"/><circle cx="190" cy="72" r="60.5"/><circle cx="252" cy="118" r="50.5"/>
+          <circle cx="220" cy="160" r="42.5"/><circle cx="150" cy="166" r="46.5"/><circle cx="92" cy="170" r="34.5"/><rect x="80" y="90" width="170" height="80"/></g>
+        <g fill="#d9dde3"><path d="M40 150 q 30 30 70 22 q 40 20 80 4 q 40 12 70 -18 q -10 34 -60 40 q -40 14 -90 2 q -50 0 -70 -50z"/></g>
+      </svg>
+      <p class="cloud-txt">ZERO<br>SCUSE</p>
+    </div>
+    <div class="boom-actions">
+      <button class="boom-btn" id="boom-home">HOME</button>
+      <button class="boom-btn go" id="boom-again">ANCORA</button>
+    </div>
+  </div>
+</section>
+
+<!-- IMPOSTAZIONI -->
+<section class="screen set" id="set" hidden>
+  <div class="bg"></div><div class="fx"></div>
+  <div class="ui">
+    <header class="top bar">
+      <button class="icon-btn" data-back aria-label="Indietro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <img class="logo" src="assets/logo-dark-800.png" alt="Andrea Righetti Calisthenics Academy">
+      <span class="icon-btn ghost"></span>
+    </header>
+    <nav class="tabs" id="tabs">
+      <button class="tab" data-tab="emom">EMOM</button><button class="tab" data-tab="tabata">TABATA</button><button class="tab" data-tab="timer">TIMER</button>
+    </nav>
+    <div class="fields" id="fields"></div>
+    <p class="total">DURATA TOTALE <b id="total">0:00</b></p>
+    <button class="save" id="btn-save">SALVA</button>
+  </div>
+</section>
+
+<div class="turn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg><p>GIRA IL TELEFONO</p></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 4.8v14.4a1 1 0 0 0 1.5.86l11.2-7.2a1 1 0 0 0 0-1.72L9.5 3.94A1 1 0 0 0 8 4.8z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4.2" height="15" rx="1.2"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></symbol>
+</svg>
+
+<script src="js/app.js"></script>
+</body>
+</html>
