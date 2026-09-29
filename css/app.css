@@ -1,0 +1,135 @@
+/* App: stati che la grafica approvata non mostra (fermo, pausa, recupero, fine), campi modificabili, fine esercizio */
+button { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+.mode { text-align: center; align-items: center; } /* nomi centrati nelle placche (richiesta del 29/09) */
+.screen { -webkit-user-select: none; user-select: none; }
+
+/* pulsante voci: spento = altoparlante barrato e luce attenuata */
+.voice-btn[aria-pressed="false"] { color: #8d9197; }
+
+/* ---------- contatore ---------- */
+/* cifre in caselle di larghezza fissa: nel font Factoria le cifre hanno larghezze diverse e il tempo "ballerebbe" */
+.digits .d { display: inline-block; width: .655em; text-align: center; }
+.digits .sep { display: inline-block; width: .3em; text-align: center; }
+.digits.long { font-size: 14.5cqw; }
+.v2 .run .phase:empty { visibility: hidden; }
+
+/* TIMER e CRONO non hanno round; CRONO non ha niente da impostare (il posto resta, così START resta al centro) */
+.run[data-mode="timer"] .round, .run[data-mode="crono"] .round,
+.run[data-mode="timer"] .segments, .run[data-mode="crono"] .segments { visibility: hidden; }
+.run[data-mode="crono"] .ctl-set { visibility: hidden; }
+.segments.bar i { flex: none; }
+.segments.bar { position: relative; background: #111214; border-radius: 3px; box-shadow: inset 0 1px 3px #000, 0 1px 0 rgba(255,255,255,.08); }
+.p-acciaio .segments.bar i { position: absolute; left: 0; top: 0; bottom: 0; height: auto; background: var(--y); box-shadow: 0 0 10px rgba(255,214,10,.9); }
+
+.ctl[disabled] { opacity: .4; cursor: default; }
+.ring .prog { transition: stroke .3s; }
+
+/* in pausa le cifre pulsano */
+.run.paused .digits { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+
+/* TABATA recupero: azzurro ghiaccio, si distingue subito dal giallo del lavoro */
+.p-acciaio .run[data-phase="rest"] .ring .prog { stroke: url(#gb); filter: drop-shadow(0 0 5px rgba(76,201,255,.9)); }
+.p-acciaio .run[data-phase="rest"] .digits { color: #4cc9ff; text-shadow: 0 0 18px rgba(76,201,255,.65), 0 0 2px #e2f7ff; }
+.p-acciaio .run[data-phase="rest"] .phase { color: #bfeaff; }
+.p-acciaio .run[data-phase="rest"] .segments i.on { background: #4cc9ff; box-shadow: 0 0 10px rgba(76,201,255,.9); }
+
+/* ---------- impostazioni: caselle scrivibili con lo stesso aspetto della grafica ---------- */
+/* Le caselle si restringono solo se l'area dei campi è troppo bassa (es. iPhone SE dentro Safari):
+   --sw/--sh = 1% della larghezza/altezza dello schermo, cqh = 1% dell'altezza dell'area dei campi. */
+@property --sw { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --sh { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --bh { syntax: '<length>'; inherits: true; initial-value: 44px; }
+.v2 .ui { --sw: 1cqw; --sh: 1cqh; }
+/* dentro l'area dei campi le misure restano quelle della grafica, riferite allo schermo */
+.v2 .fields .f-lab { font-size: max(11px, min(calc(var(--sw) * 3), calc(var(--sh) * 1.45))); padding-left: var(--sw); }
+.v2 .fields .f-row { gap: calc(var(--sw) * 3); }
+.v2 .fields .lcd { gap: calc(var(--sw) * 1.6); }
+.v2 .fields .tbox small { font-size: max(9px, min(calc(var(--sw) * 2.5), calc(var(--sh) * 1.2))); }
+.v2 .fields { container-type: size; gap: min(calc(var(--sh) * 2.4), 4cqh); }
+.v2 .field { gap: min(var(--sh), 1.5cqh); }
+.v2 .lcd { padding: min(calc(var(--sh) * 1.2), 1.4cqh) calc(var(--sw) * 3) min(var(--sh), 1.2cqh); }
+.v2 .tbox { gap: min(calc(var(--sh) * .5), .8cqh); }
+.v2 .fields .tbox input, .v2 .fields .colon { font-size: min(calc(var(--sw) * 11), calc(var(--sh) * 5.2), 12.5cqh); }
+.v2 .tbox input {
+  width: calc(1.34em + var(--sw) * 2.4); padding: 0 calc(var(--sw) * 1.2); border: 0; border-radius: 8px; background: none; outline: none; text-align: center;
+  font: 400 min(11cqw, 5.2cqh)/1 "Factoria", serif; color: var(--y); caret-color: var(--y); /* ridotto sotto se serve */
+  text-shadow: 0 0 14px rgba(255,200,0,.55), 0 0 2px #fff6b0;
+  -webkit-user-select: text; user-select: text; -moz-appearance: textfield; appearance: none;
+}
+.v2 .tbox input::selection { background: rgba(255,214,10,.35); }
+.v2 .tbox.editing input { background: rgba(255,214,10,.1); box-shadow: 0 0 0 1.5px rgba(255,214,10,.7); }
+.v2 .step:active, .ctl:active .knob, .icon-btn:active, .mode:active, .save:active, .tab:active { filter: brightness(1.25); }
+.v2 .step svg { stroke: currentColor; stroke-width: 3; stroke-linecap: round; fill: none; }
+
+/* ---------- fine esercizio ---------- */
+.boom {
+  position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: var(--sat) var(--gut) var(--sab); background: radial-gradient(circle at 50% 45%, rgba(0,0,0,.45), rgba(0,0,0,.85));
+  animation: fade-in .25s ease-out both;
+}
+.boom[hidden] { display: none; }
+.boom-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.bomb { position: absolute; width: min(46cqw, 26cqh); top: 50%; left: 50%; translate: -50% -58%; filter: drop-shadow(0 18px 24px rgba(0,0,0,.8)); animation: bomb-in .45s cubic-bezier(.2, 1.6, .4, 1) both, wobble .5s .45s ease-in-out infinite alternate; }
+.bomb .spark { transform-origin: 98px 12px; animation: spark .12s steps(2) infinite alternate; }
+.flash, .wave { position: absolute; pointer-events: none; opacity: 0; }
+.flash { inset: 0; background: radial-gradient(circle at 50% 45%, #fff, #fff6b0 30%, rgba(255,200,0,.6) 60%, transparent 80%); }
+.wave { top: 50%; left: 50%; width: 30cqw; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; border: 6px solid rgba(255,240,180,.9); box-shadow: 0 0 30px rgba(255,200,0,.8), inset 0 0 30px rgba(255,200,0,.6); }
+.fire {
+  position: absolute; top: 50%; left: 50%; width: min(70cqw, 40cqh); aspect-ratio: 1; translate: -54% -50%; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle, #fff 0 10%, #fff6b0 20%, #ffd60a 34%, #ff9f00 50%, #ff5a00 62%, rgba(255, 60, 0, 0) 71%);
+  filter: blur(3px);
+}
+.cloud { position: relative; width: min(92cqw, 62cqh); aspect-ratio: 320 / 220; opacity: 0; margin-top: -6cqh; }
+.cloud svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 12px 20px rgba(0,0,0,.6)); }
+.cloud-txt {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding-top: 3%;
+  font: 400 min(15cqw, 10cqh)/.92 "Factoria", serif; letter-spacing: .02em; color: #111; rotate: -5deg; opacity: 0;
+}
+.boom-actions { position: absolute; left: var(--gut); right: var(--gut); bottom: var(--sab); display: flex; gap: 4cqw; opacity: 0; pointer-events: none; }
+.boom-btn {
+  flex: 1; height: max(56px, 8cqh); border-radius: 18px; font: 400 min(6cqw, 3cqh)/1 "Factoria", serif; letter-spacing: .1em; color: #f2f2f2;
+  background: linear-gradient(155deg, #45484e 0%, #25272b 42%, #18191c 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -3px 8px rgba(0,0,0,.6), 0 0 0 1px #0a0a0b, 0 14px 26px -8px rgba(0,0,0,.85);
+}
+.boom-btn.go {
+  color: #111; background: radial-gradient(120% 140% at 50% 0%, #fff7b0, #ffd60a 45%, #d89a00 100%);
+  box-shadow: 0 0 0 4px #1a1b1d, 0 0 0 5.5px #6b6f76, 0 0 0 6.5px #000, 0 0 30px rgba(255,200,0,.35), inset 0 -4px 8px rgba(0,0,0,.2), inset 0 2px 2px rgba(255,255,255,.8);
+}
+/* esplosione */
+.boom.blast .bomb { animation: bomb-out .16s ease-in forwards; }
+.boom.blast .flash { animation: flash .5s ease-out forwards; }
+.boom.blast .fire { animation: fire .65s ease-out forwards; }
+.boom.blast .wave { animation: wave .7s cubic-bezier(.1, .7, .3, 1) forwards; }
+.boom.blast .cloud { animation: cloud-in .7s .12s cubic-bezier(.2, 1.5, .4, 1) forwards, cloud-float 3s .9s ease-in-out infinite alternate; }
+.boom.blast .cloud-txt { animation: txt-in .35s .45s cubic-bezier(.2, 1.8, .4, 1) forwards; }
+.boom.done .boom-actions { opacity: 1; pointer-events: auto; transition: opacity .4s; }
+.run.shake > .ui, .run.shake > .bg { animation: shake .55s cubic-bezier(.36, .07, .19, .97) both; }
+
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes bomb-in { from { scale: .2; opacity: 0; } }
+@keyframes wobble { from { rotate: -6deg; } to { rotate: 6deg; } }
+@keyframes spark { from { scale: .7; opacity: .75; } to { scale: 1.25; opacity: 1; } }
+@keyframes bomb-out { to { scale: 1.6; opacity: 0; } }
+@keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes wave { 0% { opacity: 1; scale: .2; } 100% { opacity: 0; scale: 5; } }
+@keyframes fire { 0% { opacity: 1; scale: .15; } 45% { opacity: 1; } 100% { opacity: 0; scale: 2.3; } }
+@keyframes cloud-in { 0% { opacity: 0; scale: .2; } 100% { opacity: 1; scale: 1; } }
+@keyframes cloud-float { to { translate: 0 -1.2cqh; } }
+@keyframes txt-in { 0% { opacity: 0; scale: 2.2; } 100% { opacity: 1; scale: 1; } }
+@keyframes shake {
+  10%, 90% { translate: -2px 1px; } 20%, 80% { translate: 5px -3px; }
+  30%, 50%, 70% { translate: -9px 4px; } 40%, 60% { translate: 9px -4px; }
+}
+@media (prefers-reduced-motion: reduce) { .run.shake > .ui, .run.shake > .bg { animation: none; } }
+
+/* ---------- telefono in orizzontale: l'app è pensata in verticale ---------- */
+.turn { display: none; }
+@media (orientation: landscape) and (max-height: 540px) {
+  .turn {
+    position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    background: #0a0a0a; color: var(--y); font: 400 22px/1 "Factoria", serif; letter-spacing: .08em;
+  }
+  .turn svg { width: 56px; height: 56px; animation: turn 2s ease-in-out infinite; }
+}
+@keyframes turn { 0%, 30% { rotate: 90deg; } 60%, 100% { rotate: 0deg; } }

@@ -1,0 +1,102 @@
+/* ACCIAIO versione 2: modifiche richieste dal cliente sopra acciaio.css */
+
+/* misure condivise (risolte sullo schermo) */
+.v2 .ui {
+  --bh: max(44px, 11cqw);            /* pulsanti tondi in alto */
+  --lh: min(22cqh, 50cqw);           /* altezza logo nella Home */
+  --title: min(7cqw, 3.4cqh);        /* scritta EMOM / ZERO SCUSE! */
+}
+.v2 .icon-btn { width: var(--bh); height: var(--bh); }
+
+/* ---------- HOME ---------- */
+/* pulsanti sopra al logo; la parte alta della scritta ANDREA RIGHETTI (0,2% dell'altezza del logo) cade a metà dei pulsanti */
+.v2 .home .top { position: absolute; z-index: 3; top: var(--sat); left: var(--gut); right: var(--gut); height: var(--bh); }
+.v2 .home .logo { flex: 0 0 auto; align-self: center; height: var(--lh); margin-top: calc(var(--bh) / 2 - var(--lh) * .002); }
+.v2 .home .brand { flex: 1 1 0; justify-content: center; }
+.v2 .home .modes { flex: 1.45 1 0; margin-top: 0; }
+.v2 .mode { justify-content: center; }
+/* viti negli angoli liberi: in alto a destra e in basso a sinistra */
+.p-acciaio.v2 .mode::after {
+  background:
+    radial-gradient(circle at 5px 5px, #9a9ea5 0 2.4px, #1a1b1d 2.6px 3.4px, transparent 3.6px) top right / 10px 10px no-repeat,
+    radial-gradient(circle at 5px 5px, #9a9ea5 0 2.4px, #1a1b1d 2.6px 3.4px, transparent 3.6px) bottom left / 10px 10px no-repeat;
+}
+.v2 .motto {
+  flex: 0 0 auto; text-align: center; margin-top: min(3.4cqw, 2cqh);
+  font: 400 var(--title)/1 "Factoria", serif; letter-spacing: .06em; color: var(--y);
+  text-shadow: 0 0 14px rgba(255,200,0,.55), 0 2px 0 #000;
+}
+.v2 .home .foot { padding-top: min(2.4cqw, 1.2cqh); }
+
+/* ---------- barra in alto di timer e impostazioni: logo grande la metà, parte alta della scritta a metà dei pulsanti ---------- */
+.v2 .top.bar { height: auto; align-items: flex-start; }
+.v2 .top.bar .logo { height: calc(var(--lh) / 2); width: auto; margin-top: calc(var(--bh) / 2 - var(--lh) * .001); }
+.v2 .icon-btn.ghost { visibility: hidden; }
+.v2 .run-mode { flex: 0 0 auto; display: block; text-align: center; margin-top: 1.4cqh; font: 400 var(--title)/1 "Factoria", serif; letter-spacing: .06em; color: #fff; text-shadow: 0 2px 0 #000; }
+
+/* ---------- TIMER ---------- */
+/* --R = diametro del cerchio; il nome del contatore ha la stessa grandezza delle cifre (20,5% del cerchio)
+   ed è centrato tra fondo del logo e cima del cerchio (.055em = scarto tra riquadro e inchiostro del font Factoria) */
+.v2 .run .clock { display: flex; flex-direction: column; align-items: center; --R: min(96cqw, calc(94cqh / 1.205)); }
+.p-acciaio.v2 .run .ring { flex: 0 0 auto; width: var(--R); }
+.v2 .run .run-mode { flex: 1 1 0; min-height: 0; display: flex; align-items: center; justify-content: center; margin: 0; font-size: calc(var(--R) * .205); letter-spacing: .02em; padding-top: .11em; white-space: nowrap; }
+.p-acciaio.v2 .ring .phase {
+  position: absolute; top: 25%; left: 50%; translate: -50% 0;
+  font-size: 7.92cqi; padding: 0; background: none; box-shadow: none; color: #fff; letter-spacing: .1em; text-shadow: 0 2px 0 #000;
+}
+.v2 .ring .round {
+  position: absolute; bottom: 24%; left: 0; right: 0; display: flex; justify-content: center; align-items: baseline;
+  font: 700 3.96cqi/1 var(--sans); letter-spacing: .14em; color: #c9ccd1;
+}
+.v2 .ring .round b { font: 400 8.36cqi/1 "Factoria", serif; letter-spacing: 0; margin: 0 .3em 0 0; color: #fff; }
+.v2 .run .digits { translate: 0 1.5cqi; }
+
+/* ---------- IMPOSTAZIONI ---------- */
+/* stesso spazio (a inchiostro) tra fondo del logo e scritta e tra scritta e schede: inchiostro dal 9,5% al 79,5% della riga */
+.v2 .set .run-mode { margin-top: calc(2.2cqh + var(--title) * .11); }
+.v2 .tabs {
+  flex: 0 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; margin-top: 2.2cqh;
+  border-radius: 14px; background: linear-gradient(180deg, #0c0d0e, #151618);
+  box-shadow: inset 0 3px 8px rgba(0,0,0,.9), inset 0 -1px 0 rgba(255,255,255,.08), 0 0 0 1px #000;
+}
+.v2 .tab { height: max(44px, 6cqh); border-radius: 10px; font: 400 min(4.6cqw, 2.3cqh)/1 "Factoria", serif; letter-spacing: .06em; color: #8d9197; }
+.v2 .tab.on {
+  color: #111;
+  background: linear-gradient(180deg, #fff27a, #ffd60a 45%, #e3a800);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 0 16px rgba(255,200,0,.4);
+}
+.v2 .fields { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 2.4cqh; }
+.v2 .field { display: flex; flex-direction: column; gap: 1cqh; }
+.v2 .f-lab { font: 700 max(11px, min(3cqw, 1.45cqh))/1 var(--sans); letter-spacing: .18em; color: var(--y); padding-left: 1cqw; }
+.v2 .f-row { display: flex; align-items: center; gap: 3cqw; }
+.v2 .step {
+  flex: 0 0 auto; width: var(--bh); height: var(--bh); border-radius: 50%; display: grid; place-items: center; color: #f2f2f2;
+  background: radial-gradient(circle at 50% 35%, rgba(255,255,255,.22), transparent 60%), conic-gradient(from 20deg, #6b6f76, #2b2d31, #8b9097, #303236, #74787f, #2a2c30, #6b6f76);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.8), 0 0 0 3px #1a1b1d, 0 0 0 4px rgba(255,255,255,.08), 0 6px 14px rgba(0,0,0,.7), inset 0 1px 1px rgba(255,255,255,.4);
+}
+.v2 .step svg { width: 42%; height: 42%; }
+.v2 .lcd {
+  flex: 1 1 0; min-width: 0; display: flex; align-items: flex-start; justify-content: center; gap: 1.6cqw;
+  padding: 1.2cqh 3cqw 1cqh; border-radius: 16px;
+  background: linear-gradient(180deg, #050505, #0e0f10);
+  box-shadow: inset 0 3px 10px rgba(0,0,0,.95), inset 0 -1px 0 rgba(255,255,255,.08), 0 0 0 1px #000, 0 0 0 3px #1f2023;
+}
+.v2 .tbox { display: flex; flex-direction: column; align-items: center; gap: .5cqh; }
+.v2 .tbox b, .v2 .colon {
+  position: relative; font: 400 min(11cqw, 5.2cqh)/1 "Factoria", serif; color: var(--y);
+  text-shadow: 0 0 14px rgba(255,200,0,.55), 0 0 2px #fff6b0;
+}
+.v2 .tbox b { padding: 0 1.2cqw; border-radius: 8px; }
+.v2 .tbox small { font: 700 max(9px, min(2.5cqw, 1.2cqh))/1 var(--sans); letter-spacing: .18em; color: #8d9197; }
+.v2 .tbox.editing b { padding-right: 3cqw; background: rgba(255,214,10,.1); box-shadow: 0 0 0 1.5px rgba(255,214,10,.7); }
+.v2 .tbox.editing small { color: var(--y); }
+.v2 .caret { position: absolute; right: 1cqw; top: 12%; bottom: 12%; width: 2px; background: var(--y); box-shadow: 0 0 6px var(--y); }
+.v2 .total { flex: 0 0 auto; text-align: center; font: 700 max(11px, min(3cqw, 1.45cqh))/1 var(--sans); letter-spacing: .18em; color: #8d9197; margin: 1.4cqh 0; }
+.v2 .total b { font: 400 min(5.4cqw, 2.6cqh)/1 "Factoria", serif; color: #fff; letter-spacing: .04em; margin-left: .5em; }
+.v2 .save {
+  flex: 0 0 auto; height: max(56px, 8cqh); border-radius: 18px; color: #111;
+  font: 400 min(7cqw, 3.4cqh)/1 "Factoria", serif; letter-spacing: .1em;
+  background: radial-gradient(120% 140% at 50% 0%, #fff7b0, #ffd60a 45%, #d89a00 100%);
+  box-shadow: 0 0 0 4px #1a1b1d, 0 0 0 5.5px #6b6f76, 0 0 0 6.5px #000, 0 0 30px rgba(255,200,0,.35), inset 0 -4px 8px rgba(0,0,0,.2), inset 0 2px 2px rgba(255,255,255,.8);
+  margin: 0 6px 6px;
+}
