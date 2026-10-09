@@ -1,6 +1,6 @@
 // Funzionamento senza internet: al primo avvio salva tutti i file dell'app; poi li serve dal telefono.
 // A ogni nuova versione pubblicata cambiare VERSION, così i telefoni scaricano i file aggiornati.
-const VERSION = 'crono-v4';
+const VERSION = 'crono-v5';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/base.css', 'css/acciaio.css', 'css/acciaio-v2.css', 'css/app.css', 'js/app.js',
   'assets/Factoria-W00-Black.ttf', 'assets/logo-dark-800.png', 'assets/icona-180.png', 'assets/icona-192.png', 'assets/icona-512.png', 'assets/icona-maskable-512.png',
