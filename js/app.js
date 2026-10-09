@@ -678,6 +678,7 @@
     if (st.s === 'set' && !setUI.draft) { history.back(); return; }
     show(st.s);
     if (st.s === 'run') render();
+    reloadIfDue();
   });
 
   $$('.mode').forEach(b => b.addEventListener('click', () => {
@@ -704,9 +705,29 @@
     if (run.status === 'running' || run.status === 'paused') keepAwake(true);
     onForeground();
     if (run.status === 'running') tick();
+    swReg?.update().catch(() => {}); // controllo versione anche se l'app resta aperta in secondo piano
+    reloadIfDue();
   });
   window.addEventListener('pageshow', e => { if (e.persisted) { onForeground(); tick(); } });
 
+  /* ================= aggiornamenti: la versione nuova si usa subito, ricaricando la pagina ================= */
+  // mai durante un allenamento (anche in pausa), con la bomba aperta o nelle impostazioni: si aspetta il ritorno a riposo
+  let swReg = null, reloadDue = false, reloading = false;
+  function reloadIfDue() {
+    if (!reloadDue || reloading || document.visibilityState !== 'visible') return;
+    if (run.status !== 'idle' || !boomEl.hidden || !screens.set.hidden) return;
+    reloading = true; // una volta sola
+    location.reload();
+  }
   const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-  if ('serviceWorker' in navigator && (!local || location.search.includes('sw=1'))) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if ('serviceWorker' in navigator && (!local || location.search.includes('sw=1'))) {
+    // senza controller è la prima installazione: la pagina ha già i file giusti, niente ricarica
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController) return;
+      reloadDue = true;
+      reloadIfDue();
+    });
+    navigator.serviceWorker.register('sw.js').then(reg => { swReg = reg; reg.update().catch(() => {}); }).catch(() => {});
+  }
 })();
