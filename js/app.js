@@ -238,7 +238,6 @@
   const C = 552.92; // circonferenza del cerchio (r = 88)
   const runEl = $('#run'), digitsEl = $('#digits'), phaseEl = $('#phase'), progEl = $('#prog'), segEl = $('#segments');
   const run = { mode: 'emom', segs: [], rounds: 0, end: 0, events: [], next: 0, status: 'idle', t0: 0, pausedAt: 0, boomDone: false };
-  const DOUBLE = [0, 0.25], TRIPLE = [0, 0.25, 0.5]; // bip corti ravvicinati (ognuno dura 0.16 s)
 
   function build(mode) {
     // TIMER e CRONO partono subito, senza i 10 s di PRONTI
@@ -264,16 +263,6 @@
       s.start = t;
       if (s.kind !== 'ready') events.push({ t, type: 'long' });
       if (Number.isFinite(s.dur)) for (let k = 3; k >= 1; k--) if (s.dur > k) events.push({ t: t + s.dur - k, type: 'short' });
-      // avvisi, mai sovrapposti: doppio bip a 10 s dalla fine (non in TABATA) solo se il segmento dura più di 13 s
-      // (dopo la partenza, prima del 3-2-1); in EMOM triplo bip a metà round solo se dura almeno 20 s e la metà non cade entro 1 s
-      // dal doppio bip o dal 3-2-1 (es. round da 20 s: la metà è a 10 s dalla fine, resta solo il doppio)
-      const marks = [];
-      if (mode !== 'tabata' && s.kind !== 'ready' && Number.isFinite(s.dur) && s.dur > 13) for (const d of DOUBLE) marks.push(t + s.dur - 10 + d);
-      if (mode === 'emom' && s.kind === 'work' && s.dur >= 20) {
-        const mid = t + s.dur / 2, last = mid + TRIPLE[TRIPLE.length - 1];
-        if ([...marks, t + s.dur - 3].every(b => b > last + 1 || b < mid - 1)) for (const d of TRIPLE) marks.push(mid + d);
-      }
-      for (const m of marks) events.push({ t: m, type: 'short' });
       t += s.dur;
     }
     // il bip lungo di partenza del segmento successivo sostituisce quello di fine; alla fine di tutto, bip finale
