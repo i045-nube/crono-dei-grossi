@@ -32,29 +32,65 @@
 
   /* ================= audio: bip generati, voci, esplosione ================= */
   const AUDIO_SESSION = 'playback';
-  const audio = { ctx: null, out: null, voices: { start: [], finish: [] }, last: {}, pending: [], voiceSrc: null };
+  const BOOM_GAIN = 0.6; // boom.m4a è a -10.3 LUFS: con 0.6 (-4.4 dB) sta a circa -14.7, un po' sopra le voci (-18)
+  const AC = window.AudioContext || window.webkitAudioContext;
+  // raw: i file scaricati (copie intatte), per poter ricreare il contesto audio e ridecodificarli quando iPhone lo rompe
+  const audio = { ctx: null, out: null, voices: { start: [], finish: [] }, boom: null, raw: { start: [], finish: [], boom: null },
+    last: {}, pending: [], voiceSrc: null, stale: false, bg: null };
 
   function initAudio() {
     // iPhone (Safari 17+): 'playback' si sente anche col telefono in silenzioso ma ferma la musica di altre app;
     // 'transient' lascia suonare la musica ma col silenzioso i bip non si sentono. Va impostata prima del contesto.
     try { if (navigator.audioSession) navigator.audioSession.type = AUDIO_SESSION; } catch { /* non supportato */ }
-    const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
-    audio.ctx = new AC();
-    audio.out = audio.ctx.createDynamicsCompressor();
-    audio.out.connect(audio.ctx.destination);
-    fetch('audio/voci.json').then(r => r.json()).then(list => {
-      for (const kind of ['start', 'finish']) for (const url of list[kind] || []) {
-        fetch(url).then(r => r.arrayBuffer()).then(b => audio.ctx.decodeAudioData(b)).then(buf => audio.voices[kind].push(buf)).catch(() => {});
-      }
-    }).catch(() => {});
+    newContext();
+    const get = url => fetch(url).then(r => r.arrayBuffer()).catch(() => null);
+    fetch('audio/voci.json').then(r => r.json()).then(list => Promise.all(['start', 'finish'].map(kind =>
+      Promise.all((list[kind] || []).map(get)).then(bufs => { audio.raw[kind] = bufs.filter(Boolean); })
+    ))).catch(() => {}).then(() => decodeAll(audio.ctx, ['start', 'finish']));
+    get('audio/boom.m4a').then(b => { audio.raw.boom = b; decodeAll(audio.ctx, ['boom']); });
+  }
+
+  // decodeAudioData consuma il buffer: si decodifica sempre una copia. I suoni vecchi restano in uso finché i nuovi non sono pronti.
+  function decodeAll(ctx, kinds = ['start', 'finish', 'boom']) {
+    const dec = b => ctx.decodeAudioData(b.slice(0)).catch(() => null);
+    for (const kind of kinds.filter(k => k !== 'boom')) {
+      if (!audio.raw[kind].length) continue;
+      Promise.all(audio.raw[kind].map(dec)).then(bufs => { if (audio.ctx === ctx) audio.voices[kind] = bufs.filter(Boolean); });
+    }
+    if (kinds.includes('boom') && audio.raw.boom) dec(audio.raw.boom).then(buf => { if (audio.ctx === ctx && buf) audio.boom = buf; });
+  }
+
+  // contesto audio nuovo (al primo avvio e quando iPhone lascia quello vecchio muto o chiuso)
+  function newContext() {
+    const old = audio.ctx;
+    if (old) { old.onstatechange = null; old.close().catch(() => {}); }
+    const ctx = audio.ctx = new AC();
+    audio.out = ctx.createDynamicsCompressor();
+    audio.out.connect(ctx.destination);
+    audio.pending = [];
+    audio.voiceSrc = null;
+    if (audio.bg) run.boomDone = false; // l'esplosione affidata al contesto vecchio è persa
+    audio.bg = null;
+    ctx.onstatechange = () => {
+      if (ctx !== audio.ctx || run.status !== 'running') return;
+      if (ctx.state === 'closed') { newContext(); unlockAudio(); } else if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    };
+    if (old) {
+      decodeAll(ctx);
+      // i bip già programmati sul contesto vecchio sono persi: si riparte dal prossimo evento
+      if (run.status === 'running') realign();
+    }
   }
 
   // iPhone e Android fanno partire l'audio solo dopo un tocco: lo si sblocca premendo START o Riprendi,
   // non al primo tocco qualsiasi, per non disturbare la musica di altre app finché non si parte
   function unlockAudio() {
+    if (!AC) return;
+    // tornati da un'altra app il contesto può restare muto anche se dice 'running' (iPhone):
+    // al primo tocco utile lo si ricrea, perché solo dentro un tocco iPhone lo lascia ripartire
+    if (!audio.ctx || audio.stale || audio.ctx.state === 'closed') { newContext(); audio.stale = false; }
     const ctx = audio.ctx;
-    if (!ctx) return;
     if (ctx.state !== 'running') ctx.resume().catch(() => {});
     const s = ctx.createBufferSource();
     s.buffer = ctx.createBuffer(1, 1, 22050);
@@ -78,6 +114,7 @@
     o.connect(g).connect(audio.out);
     o.start(t);
     o.stop(t + len + 0.02);
+    o.at = t;
     audio.pending.push(o);
     o.onended = () => { audio.pending = audio.pending.filter(x => x !== o); };
   }
@@ -85,40 +122,99 @@
 
   function playVoice(kind, delay = 0) {
     const list = audio.voices[kind];
-    if (!cfg.voices || !audio.ctx || !list.length) return;
+    if (!cfg.voices || !audio.ctx || !list.length) return null;
     let i;
     do i = Math.floor(Math.random() * list.length); while (list.length > 1 && i === audio.last[kind]);
     audio.last[kind] = i;
     const s = audio.ctx.createBufferSource();
     s.buffer = list[i];
     s.connect(audio.out);
-    s.start(audio.ctx.currentTime + delay);
+    s.start(s.at = audio.ctx.currentTime + delay);
     audio.voiceSrc = s;
+    return s;
   }
   function stopVoice() { try { audio.voiceSrc?.stop(); } catch { /* già finita */ } audio.voiceSrc = null; }
 
   function boomSound(delay) {
     const ctx = audio.ctx;
+    if (!ctx || !audio.boom) return null;
+    const s = ctx.createBufferSource(), g = ctx.createGain();
+    s.buffer = audio.boom;
+    g.gain.value = BOOM_GAIN;
+    s.connect(g).connect(audio.out);
+    s.start(s.at = ctx.currentTime + delay);
+    return s;
+  }
+
+  /* ===== app in secondo piano (iPhone): il JavaScript si ferma, il motore audio forse no ===== */
+  // Si affidano subito al motore audio tutti i bip rimasti, più esplosione e voce finale: se iPhone tiene vivo l'audio
+  // (sessione 'playback' + il file muto qui sotto in riproduzione) suonano anche mentre si usa un'altra app. Non garantito.
+  // solo su iPhone/iPad (gli iPad recenti si presentano come Mac con touch): su Android e altri non serve
+  const IOS = !/Android/i.test(navigator.userAgent) &&
+    (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+  const keepAlive = AC && IOS ? new Audio('audio/silenzio.m4a') : null;
+  if (keepAlive) { keepAlive.loop = true; keepAlive.preload = 'auto'; }
+  function keepAudioAlive(on) {
+    if (!keepAlive) return;
+    try { if (on) keepAlive.play().catch(() => {}); else keepAlive.pause(); } catch { /* non supportato */ }
+  }
+
+  function scheduleBackground() {
+    if (!audio.ctx || run.status !== 'running' || audio.bg) return;
+    const e = elapsed();
+    for (; run.next < run.events.length; run.next++) {
+      const ev = run.events[run.next];
+      if (e - ev.t <= 0.3) beep(ev.type, Math.max(0, ev.t - e));
+    }
+    audio.bg = [];
+    if (Number.isFinite(run.end) && run.end > e) {
+      const d = run.end - e;
+      audio.bg.push(boomSound(d + 1.1));
+      if (run.mode === 'emom' || run.mode === 'tabata') audio.bg.push(playVoice('finish', d + 1.5));
+      audio.bg = audio.bg.filter(Boolean);
+      run.boomDone = audio.bg.length > 0; // l'esplosione è già affidata al motore audio: finish() non la ripete
+    }
+  }
+
+  // di nuovo in primo piano: si fermano i suoni affidati e non ancora partiti e si torna alla programmazione normale
+  // (quelli già partiti restano: niente bip doppi né mancanti)
+  function leaveBackground() {
+    if (!audio.bg || !audio.ctx) return;
+    const now = audio.ctx.currentTime, waiting = n => n.at > now;
+    for (const o of audio.pending.filter(waiting)) try { o.stop(); } catch { /* già fermo */ }
+    audio.pending = audio.pending.filter(o => !waiting(o));
+    if (audio.bg.some(waiting) && !audio.bg.some(n => n.at <= now && n.buffer === audio.boom)) {
+      for (const n of audio.bg) try { n.stop(); } catch { /* già fermo */ }
+      run.boomDone = false;
+    }
+    audio.bg = null;
+    realign(true); // gli eventi fino a adesso sono già partiti (e tenuti)
+  }
+
+  // prossimo bip da programmare = primo evento non ancora passato
+  function realign(after = false) {
+    const e = elapsed();
+    run.next = run.events.findIndex(ev => after ? ev.t > e : ev.t >= e);
+    if (run.next < 0) run.next = run.events.length;
+  }
+
+  function onForeground() {
+    if (run.status !== 'running') return;
+    leaveBackground();
+    const ctx = audio.ctx;
     if (!ctx) return;
-    const t = ctx.currentTime + delay, len = 1.4;
-    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * len), ctx.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.2);
-    const n = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
-    n.buffer = buf;
-    lp.type = 'lowpass';
-    lp.frequency.setValueAtTime(2400, t);
-    lp.frequency.exponentialRampToValueAtTime(90, t + len);
-    g.gain.setValueAtTime(1.4, t);
-    n.connect(lp).connect(g).connect(audio.out);
-    n.start(t);
-    const o = ctx.createOscillator(), og = ctx.createGain();
-    o.frequency.setValueAtTime(90, t);
-    o.frequency.exponentialRampToValueAtTime(28, t + 0.5);
-    og.gain.setValueAtTime(1, t);
-    og.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-    o.connect(og).connect(audio.out);
-    o.start(t);
-    o.stop(t + 0.6);
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    setTimeout(() => {
+      if (ctx === audio.ctx && run.status === 'running' && ctx.state !== 'running') { newContext(); audio.ctx.resume().catch(() => {}); }
+    }, 300);
+    // al primo tocco il contesto viene ricreato dentro il gesto (unlockAudio), l'unico modo sicuro su iPhone
+    const onTouch = () => {
+      document.removeEventListener('touchend', onTouch, true);
+      document.removeEventListener('click', onTouch, true);
+      if (run.status === 'running') unlockAudio();
+    };
+    document.addEventListener('touchend', onTouch, true);
+    document.addEventListener('click', onTouch, true);
   }
 
   /* ================= schermo sempre acceso durante l'allenamento ================= */
@@ -141,10 +237,12 @@
   const READY = 10;
   const C = 552.92; // circonferenza del cerchio (r = 88)
   const runEl = $('#run'), digitsEl = $('#digits'), phaseEl = $('#phase'), progEl = $('#prog'), segEl = $('#segments');
-  const run = { mode: 'emom', segs: [], rounds: 0, end: 0, events: [], next: 0, status: 'idle', t0: 0, pausedAt: 0 };
+  const run = { mode: 'emom', segs: [], rounds: 0, end: 0, events: [], next: 0, status: 'idle', t0: 0, pausedAt: 0, boomDone: false };
+  const DOUBLE = [0, 0.25], TRIPLE = [0, 0.25, 0.5]; // bip corti ravvicinati (ognuno dura 0.16 s)
 
   function build(mode) {
-    const segs = [{ kind: 'ready', dur: READY, round: 1 }];
+    // TIMER e CRONO partono subito, senza i 10 s di PRONTI
+    const segs = mode === 'emom' || mode === 'tabata' ? [{ kind: 'ready', dur: READY, round: 1 }] : [];
     let rounds = 0;
     if (mode === 'emom') {
       rounds = cfg.emom.rounds;
@@ -166,12 +264,22 @@
       s.start = t;
       if (s.kind !== 'ready') events.push({ t, type: 'long' });
       if (Number.isFinite(s.dur)) for (let k = 3; k >= 1; k--) if (s.dur > k) events.push({ t: t + s.dur - k, type: 'short' });
+      // avvisi, mai sovrapposti: doppio bip a 10 s dalla fine (non in TABATA) solo se il segmento dura più di 13 s
+      // (dopo la partenza, prima del 3-2-1); in EMOM triplo bip a metà round solo se dura almeno 20 s e la metà non cade entro 1 s
+      // dal doppio bip o dal 3-2-1 (es. round da 20 s: la metà è a 10 s dalla fine, resta solo il doppio)
+      const marks = [];
+      if (mode !== 'tabata' && s.kind !== 'ready' && Number.isFinite(s.dur) && s.dur > 13) for (const d of DOUBLE) marks.push(t + s.dur - 10 + d);
+      if (mode === 'emom' && s.kind === 'work' && s.dur >= 20) {
+        const mid = t + s.dur / 2, last = mid + TRIPLE[TRIPLE.length - 1];
+        if ([...marks, t + s.dur - 3].every(b => b > last + 1 || b < mid - 1)) for (const d of TRIPLE) marks.push(mid + d);
+      }
+      for (const m of marks) events.push({ t: m, type: 'short' });
       t += s.dur;
     }
     // il bip lungo di partenza del segmento successivo sostituisce quello di fine; alla fine di tutto, bip finale
     if (Number.isFinite(t)) events.push({ t, type: 'end' });
     events.sort((a, b) => a.t - b.t);
-    Object.assign(run, { mode, segs, rounds, end: t, events, next: 0 });
+    Object.assign(run, { mode, segs, rounds, end: t, events, next: 0, boomDone: false });
   }
 
   const elapsed = () => run.status === 'running' ? (Date.now() - run.t0) / 1000 : run.status === 'paused' ? (run.pausedAt - run.t0) / 1000 : 0;
@@ -208,7 +316,7 @@
     const e = elapsed();
     let phase = '', text, fill, round = 1, kind = 'idle', frac = 0;
     if (run.status === 'idle') {
-      const first = run.segs[1];
+      const first = run.segs.find(s => s.kind !== 'ready');
       text = fmtClock(Number.isFinite(first.dur) ? first.dur : 0);
       fill = 1;
     } else if (run.status === 'done') {
@@ -283,6 +391,7 @@
     run.t0 = Date.now();
     if (run.mode === 'emom' || run.mode === 'tabata') playVoice('start');
     keepAwake(true);
+    keepAudioAlive(true);
     loop();
   }
   function pause() {
@@ -290,22 +399,25 @@
     run.status = 'paused';
     run.pausedAt = Date.now();
     cancelBeeps();
+    keepAudioAlive(false);
     render();
   }
   function resume() {
     unlockAudio();
     run.t0 += Date.now() - run.pausedAt;
     run.status = 'running';
-    const e = elapsed();
-    run.next = run.events.findIndex(ev => ev.t >= e);
-    if (run.next < 0) run.next = run.events.length;
+    realign();
     keepAwake(true);
+    keepAudioAlive(true);
     loop();
   }
   function reset() {
     cancelBeeps();
     stopVoice();
     closeBoom();
+    for (const n of audio.bg || []) try { n.stop(); } catch { /* già fermo */ }
+    audio.bg = null;
+    keepAudioAlive(false);
     run.status = 'idle';
     build(run.mode);
     keepAwake(false);
@@ -314,8 +426,10 @@
   function finish(late) {
     run.status = 'done';
     keepAwake(false);
+    // il file muto si ferma solo dopo l'esplosione: se la fine arriva in secondo piano serve ancora
+    setTimeout(() => { if (run.status !== 'running') keepAudioAlive(false); }, 3000);
     render();
-    explode(late < 2);
+    explode(late < 2 && !run.boomDone);
   }
 
   function openRun(mode) {
@@ -582,10 +696,16 @@
   openRun('emom');
   initAudio();
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
+    if (document.visibilityState !== 'visible') {
+      if (audio.ctx) audio.stale = true; // al ritorno il contesto audio va ricreato al primo tocco
+      scheduleBackground();
+      return;
+    }
     if (run.status === 'running' || run.status === 'paused') keepAwake(true);
+    onForeground();
     if (run.status === 'running') tick();
   });
+  window.addEventListener('pageshow', e => { if (e.persisted) { onForeground(); tick(); } });
 
   const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   if ('serviceWorker' in navigator && (!local || location.search.includes('sw=1'))) navigator.serviceWorker.register('sw.js').catch(() => {});
