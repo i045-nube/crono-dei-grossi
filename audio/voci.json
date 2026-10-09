@@ -12,19 +12,24 @@
   "audio/start/10start.m4a",
   "audio/start/11start.m4a",
   "audio/start/12start.m4a",
-  "audio/start/13start.m4a"
+  "audio/start/13start.m4a",
+  "audio/start/14start.m4a",
+  "audio/start/15start.m4a",
+  "audio/start/16start.m4a",
+  "audio/start/17start.m4a"
  ],
  "finish": [
   "audio/finish/01finish.m4a",
-  "audio/finish/02finish.m4a",
   "audio/finish/03finish.m4a",
   "audio/finish/04finish.m4a",
   "audio/finish/05finish.m4a",
   "audio/finish/06finish.m4a",
-  "audio/finish/07finish.m4a",
   "audio/finish/08finish.m4a",
   "audio/finish/09finish.m4a",
   "audio/finish/10finish.m4a",
-  "audio/finish/11finish.m4a"
+  "audio/finish/11finish.m4a",
+  "audio/finish/12finish.m4a",
+  "audio/finish/13finish.m4a",
+  "audio/finish/14finish.m4a"
  ]
 }
