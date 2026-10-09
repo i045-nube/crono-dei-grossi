@@ -22,6 +22,10 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
 .p-acciaio .segments.bar i { position: absolute; left: 0; top: 0; bottom: 0; height: auto; background: var(--y); box-shadow: 0 0 10px rgba(255,214,10,.9); }
 
 .ctl[disabled] { opacity: .4; cursor: default; }
+/* scritte sotto i tasti: gli anelli dei tasti sono ombre che sporgono (7px il giallo, 4px gli altri) e non occupano spazio;
+   la distanza in più tiene la scritta a circa 7px dall'anello esterno per tutti e tre */
+.ctl { gap: calc(.8cqh + 6px); }
+.ctl-main { gap: calc(.8cqh + 9px); }
 .ring .prog { transition: stroke .3s; }
 
 /* in pausa le cifre pulsano */
