@@ -31,7 +31,7 @@
   const totalOf = (m, c) => m === 'emom' ? c.round * c.rounds : m === 'tabata' ? (c.work + c.rest) * c.rounds : c.dur;
 
   /* ================= audio: bip generati, voci, esplosione ================= */
-  const AUDIO_SESSION = 'playback';
+  const AUDIO_SESSION = 'ambient';
   const BOOM_GAIN = 0.6; // boom.m4a è a -10.3 LUFS: con 0.6 (-4.4 dB) sta a circa -14.7, un po' sopra le voci (-18)
   const AC = window.AudioContext || window.webkitAudioContext;
   // raw: i file scaricati (copie intatte), per poter ricreare il contesto audio e ridecodificarli quando iPhone lo rompe
@@ -39,8 +39,8 @@
     last: {}, pending: [], voiceSrc: null, stale: false, bg: null };
 
   function initAudio() {
-    // iPhone (Safari 17+): 'playback' si sente anche col telefono in silenzioso ma ferma la musica di altre app;
-    // 'transient' lascia suonare la musica ma col silenzioso i bip non si sentono. Va impostata prima del contesto.
+    // iPhone (Safari 17+): 'ambient' lascia suonare la musica di altre app (Spotify) ma col silenzioso i bip non si sentono;
+    // 'playback' si sente anche col silenzioso ma ferma la musica (versione fino a crono-v5). Va impostata prima del contesto.
     try { if (navigator.audioSession) navigator.audioSession.type = AUDIO_SESSION; } catch { /* non supportato */ }
     if (!AC) return;
     newContext();
@@ -148,7 +148,7 @@
 
   /* ===== app in secondo piano (iPhone): il JavaScript si ferma, il motore audio forse no ===== */
   // Si affidano subito al motore audio tutti i bip rimasti, più esplosione e voce finale: se iPhone tiene vivo l'audio
-  // (sessione 'playback' + il file muto qui sotto in riproduzione) suonano anche mentre si usa un'altra app. Non garantito.
+  // (sessione audio + il file muto qui sotto in riproduzione) suonano anche mentre si usa un'altra app. Non garantito.
   // solo su iPhone/iPad (gli iPad recenti si presentano come Mac con touch): su Android e altri non serve
   const IOS = !/Android/i.test(navigator.userAgent) &&
     (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
