@@ -6,7 +6,9 @@
     repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 2px, transparent 2px 7px),
     linear-gradient(180deg, #2a2c30 0%, #17181b 45%, #0b0c0d 100%);
 }
-.p-acciaio .fx { background: var(--noise); opacity: .07; mix-blend-mode: overlay; }
+/* grana: piastrella PNG fissa (prima era una texture SVG calcolata + mix-blend-mode: overlay, sospettati dello sfarfallio su iPhone);
+   la trasparenza della piastrella è ridotta a 0,18 per dare con la fusione normale circa la stessa schiaritura dell'overlay sul fondo scuro (scarto misurato sotto 1/255) */
+.p-acciaio .fx { background: url("../assets/grana.png") 0 0 / 180px 180px; opacity: .07; }
 .p-acciaio .fx::after {
   content: ""; position: absolute; inset: 0;
   background: radial-gradient(140% 90% at 50% 45%, transparent 55%, rgba(0,0,0,.75));
@@ -24,11 +26,20 @@
 .p-acciaio .icon-btn svg { filter: drop-shadow(0 1px 0 rgba(0,0,0,.8)); }
 
 /* marchio */
-.p-acciaio .logo { filter: drop-shadow(0 10px 22px rgba(0,0,0,.8)) drop-shadow(0 0 30px rgba(255,214,10,.18)); }
-.p-acciaio .t1 {
+/* le due ombre del logo (prima filter: drop-shadow(0 10px 22px rgba(0,0,0,.8)) drop-shadow(0 0 30px rgba(255,214,10,.18)))
+   sono disegnate dentro assets/logo-ombra.png: il filtro faceva sparire il logo per singoli fotogrammi su iPhone.
+   Il PNG ha 280 px trasparenti per lato attorno al logo 800x746: misure e margini negativi in acciaio-v2.css.
+   position: relative lo disegna sopra le scritte che seguono (es. EMOM sotto la barra), come faceva il filtro */
+.p-acciaio .logo { position: relative; }
+/* titolo senza filter (prima filter: drop-shadow(0 2px 0 #000) drop-shadow(0 6px 10px rgba(0,0,0,.7))):
+   la scritta trasparente porta solo l'ombra; il gradiente sta su una copia sovrapposta (::after),
+   perché un text-shadow sulla scritta col gradiente ritagliato verrebbe disegnato sopra il gradiente.
+   position: relative tiene l'ombra sopra la targhetta DEI GROSSI, come faceva il filtro */
+.p-acciaio .t1 { position: relative; color: transparent; text-shadow: 0 2px 0 #000, 0 7px 10px rgba(0,0,0,.7); }
+.p-acciaio .t1::after {
+  content: attr(data-text); position: absolute; inset: 0; text-shadow: none;
   background: linear-gradient(180deg, #ffffff 0%, #d9dce0 38%, #7d8187 52%, #c9ccd1 70%, #f4f5f6 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 2px 0 #000) drop-shadow(0 6px 10px rgba(0,0,0,.7));
 }
 .p-acciaio .t2 {
   color: #111; padding: .7cqh 3.4cqw .5cqh; letter-spacing: .26em;

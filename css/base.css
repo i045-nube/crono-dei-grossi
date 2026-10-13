@@ -19,7 +19,7 @@
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .screen {
   position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden;
-  container-type: size; isolation: isolate; background: var(--k);
+  container-type: size; background: var(--k);
 }
 .screen[hidden] { display: none; }
 body {

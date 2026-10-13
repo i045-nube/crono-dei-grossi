@@ -11,7 +11,9 @@
 /* ---------- HOME ---------- */
 /* pulsanti sopra al logo; la parte alta della scritta ANDREA RIGHETTI (0,2% dell'altezza del logo) cade a metà dei pulsanti */
 .v2 .home .top { position: absolute; z-index: 3; top: var(--sat); left: var(--gut); right: var(--gut); height: var(--bh); }
-.v2 .home .logo { flex: 0 0 auto; align-self: center; height: var(--lh); margin-top: calc(var(--bh) / 2 - var(--lh) * .002); }
+/* logo-ombra.png = logo 800x746 + 280 px trasparenti per lato (ombre): altezza x 1306/746 e margini negativi di 280/746,
+   così la parte visibile del logo ha la stessa misura e posizione di prima */
+.v2 .home .logo { flex: 0 0 auto; align-self: center; height: calc(var(--lh) * 1306 / 746); margin: calc(var(--lh) * -280 / 746); margin-top: calc(var(--bh) / 2 - var(--lh) * .002 - var(--lh) * 280 / 746); }
 .v2 .home .brand { flex: 1 1 0; justify-content: center; }
 .v2 .home .modes { flex: 1.45 1 0; margin-top: 0; }
 .v2 .mode { justify-content: center; }
@@ -30,7 +32,7 @@
 
 /* ---------- barra in alto di timer e impostazioni: logo grande la metà, parte alta della scritta a metà dei pulsanti ---------- */
 .v2 .top.bar { height: auto; align-items: flex-start; }
-.v2 .top.bar .logo { height: calc(var(--lh) / 2); width: auto; margin-top: calc(var(--bh) / 2 - var(--lh) * .001); }
+.v2 .top.bar .logo { height: calc(var(--lh) / 2 * 1306 / 746); width: auto; margin: calc(var(--lh) / 2 * -280 / 746); margin-top: calc(var(--bh) / 2 - var(--lh) * .001 - var(--lh) / 2 * 280 / 746); }
 .v2 .icon-btn.ghost { visibility: hidden; }
 .v2 .run-mode { flex: 0 0 auto; display: block; text-align: center; margin-top: 1.4cqh; font: 400 var(--title)/1 "Factoria", serif; letter-spacing: .06em; color: #fff; text-shadow: 0 2px 0 #000; }
 
