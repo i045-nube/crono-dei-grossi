@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Voci di Andrea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;600&family=Barlow+Condensed:wght@500;700&display=swap">
+<style>
+/* Layout: due colonne di piastre d'acciaio (START a sinistra, FINISH a destra), una sotto l'altra su telefono. Look unico scuro, come l'app. */
+:root {
+  --bg: #121315; --plate: #1d1f22; --plate-2: #26292d; --line: #34383d;
+  --fg: #eceae4; --muted: #8f949b; --y: #ffc400; --ice: #8fd3ff;
+  --display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --label: "Barlow Condensed", "Arial Narrow", sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 16px/1.5 var(--body); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 40px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: grid; gap: 10px; margin-bottom: 32px; }
+.eyebrow { font: 700 13px/1 var(--label); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font: 400 clamp(40px, 8vw, 72px)/.95 var(--display); letter-spacing: .02em; text-transform: uppercase; color: var(--y); text-wrap: balance; text-shadow: 0 3px 0 #000; }
+.lede { margin: 0; max-width: 62ch; color: var(--muted); }
+.lede b { color: var(--fg); font-weight: 600; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
+section { min-width: 0; }
+.sh { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--line); margin-bottom: 12px; }
+h2 { margin: 0; font: 400 34px/1 var(--display); letter-spacing: .04em; }
+.start h2 { color: var(--y); } .finish h2 { color: var(--ice); }
+.sh small { display: block; font: 500 14px/1.2 var(--label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.all { font: 700 14px/1 var(--label); letter-spacing: .12em; text-transform: uppercase; color: var(--bg); background: var(--acc); border: 0; border-radius: 3px; padding: 10px 14px; cursor: pointer; white-space: nowrap; }
+.start { --acc: var(--y); } .finish { --acc: var(--ice); }
+.all:focus-visible, .play:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.v { position: relative; display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 14px; padding: 10px 14px 12px 10px; background: linear-gradient(180deg, var(--plate-2), var(--plate)); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.v.on { border-color: var(--acc); }
+.play { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--acc); background: transparent; cursor: pointer; display: grid; place-items: center; }
+.ic { width: 0; height: 0; border-left: 13px solid var(--acc); border-top: 8px solid transparent; border-bottom: 8px solid transparent; margin-left: 3px; }
+.v.on .ic { width: 12px; height: 14px; border: 0; margin: 0; background: linear-gradient(90deg, var(--acc) 0 4px, transparent 4px 8px, var(--acc) 8px 12px); }
+.meta { min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+.nm { font: 400 26px/1 var(--display); letter-spacing: .03em; }
+.fl { font: 500 14px/1 var(--label); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d { font: 600 15px/1 var(--label); font-variant-numeric: tabular-nums; color: var(--muted); }
+.bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--acc); }
+footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Crono dei Grossi · Andrea Righetti Calisthenics Academy</span>
+    <h1>Voci di Andrea</h1>
+    <p class="lede">Tutte le frasi parlate che l'app usa in <b>EMOM</b> e <b>TABATA</b>, già tagliate e con lo stesso volume dell'app. Le START partono all'inizio del lavoro, le FINISH a fine allenamento; l'app ne sceglie una a caso e non ripete mai la stessa due volte di fila.</p>
+  </header>
+
+  <div class="cols">
+    <section class="start" aria-labelledby="h-start">
+      <div class="sh">
+        <div><h2 id="h-start">START</h2><small>15 voci · inizio lavoro</small></div>
+        <button class="all" type="button">Ascolta tutte</button>
+      </div>
+      <ul>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 01start"><span class="ic"></span></button><div class="meta"><span class="nm">01</span><span class="fl">01start.m4a</span></div><span class="d">3.0 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/01start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 02start"><span class="ic"></span></button><div class="meta"><span class="nm">02</span><span class="fl">02start.m4a</span></div><span class="d">1.2 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/02start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 03start"><span class="ic"></span></button><div class="meta"><span class="nm">03</span><span class="fl">03start.m4a</span></div><span class="d">3.1 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/03start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 04start"><span class="ic"></span></button><div class="meta"><span class="nm">04</span><span class="fl">04start.m4a</span></div><span class="d">2.8 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/04start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 05start"><span class="ic"></span></button><div class="meta"><span class="nm">05</span><span class="fl">05start.m4a</span></div><span class="d">1.4 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/05start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 06start"><span class="ic"></span></button><div class="meta"><span class="nm">06</span><span class="fl">06start.m4a</span></div><span class="d">2.6 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/06start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 07start"><span class="ic"></span></button><div class="meta"><span class="nm">07</span><span class="fl">07start.m4a</span></div><span class="d">1.0 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/07start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 08start"><span class="ic"></span></button><div class="meta"><span class="nm">08</span><span class="fl">08start.m4a</span></div><span class="d">0.9 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/08start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 09start"><span class="ic"></span></button><div class="meta"><span class="nm">09</span><span class="fl">09start.m4a</span></div><span class="d">2.2 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/09start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 10start"><span class="ic"></span></button><div class="meta"><span class="nm">10</span><span class="fl">10start.m4a</span></div><span class="d">1.4 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/10start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 11start"><span class="ic"></span></button><div class="meta"><span class="nm">11</span><span class="fl">11start.m4a</span></div><span class="d">1.3 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/11start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 13start"><span class="ic"></span></button><div class="meta"><span class="nm">13</span><span class="fl">13start.m4a</span></div><span class="d">2.1 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/13start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 14start"><span class="ic"></span></button><div class="meta"><span class="nm">14</span><span class="fl">14start.m4a</span></div><span class="d">1.8 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/14start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 15start"><span class="ic"></span></button><div class="meta"><span class="nm">15</span><span class="fl">15start.m4a</span></div><span class="d">3.2 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/15start.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 16start"><span class="ic"></span></button><div class="meta"><span class="nm">16</span><span class="fl">16start.m4a</span></div><span class="d">1.4 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/start/16start.m4a"></audio></li>
+      </ul>
+    </section>
+
+    <section class="finish" aria-labelledby="h-finish">
+      <div class="sh">
+        <div><h2 id="h-finish">FINISH</h2><small>12 voci · fine allenamento</small></div>
+        <button class="all" type="button">Ascolta tutte</button>
+      </div>
+      <ul>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 01finish"><span class="ic"></span></button><div class="meta"><span class="nm">01</span><span class="fl">01finish.m4a</span></div><span class="d">2.6 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/01finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 03finish"><span class="ic"></span></button><div class="meta"><span class="nm">03</span><span class="fl">03finish.m4a</span></div><span class="d">2.3 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/03finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 04finish"><span class="ic"></span></button><div class="meta"><span class="nm">04</span><span class="fl">04finish.m4a</span></div><span class="d">1.4 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/04finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 05finish"><span class="ic"></span></button><div class="meta"><span class="nm">05</span><span class="fl">05finish.m4a</span></div><span class="d">2.6 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/05finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 06finish"><span class="ic"></span></button><div class="meta"><span class="nm">06</span><span class="fl">06finish.m4a</span></div><span class="d">1.1 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/06finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 08finish"><span class="ic"></span></button><div class="meta"><span class="nm">08</span><span class="fl">08finish.m4a</span></div><span class="d">2.1 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/08finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 09finish"><span class="ic"></span></button><div class="meta"><span class="nm">09</span><span class="fl">09finish.m4a</span></div><span class="d">2.7 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/09finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 10finish"><span class="ic"></span></button><div class="meta"><span class="nm">10</span><span class="fl">10finish.m4a</span></div><span class="d">2.7 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/10finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 11finish"><span class="ic"></span></button><div class="meta"><span class="nm">11</span><span class="fl">11finish.m4a</span></div><span class="d">3.1 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/11finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 13finish"><span class="ic"></span></button><div class="meta"><span class="nm">13</span><span class="fl">13finish.m4a</span></div><span class="d">1.4 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/13finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 14finish"><span class="ic"></span></button><div class="meta"><span class="nm">14</span><span class="fl">14finish.m4a</span></div><span class="d">3.0 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/14finish.m4a"></audio></li>
+<li class="v"><button class="play" type="button" aria-label="Ascolta 15finish"><span class="ic"></span></button><div class="meta"><span class="nm">15</span><span class="fl">15finish.m4a</span></div><span class="d">1.0 s</span><div class="bar"><i></i></div><audio preload="auto" src="audio/finish/15finish.m4a"></audio></li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>File identici a quelli dell'app: silenzi tolti (resta 0,02 s prima e 0,08 s dopo il parlato), volume pareggiato a −18 LUFS, AAC mono. Gli effetti sonori (bip ed esplosione) non sono inclusi.</footer>
+</div>
+
+<script>
+(() => {
+  let cur = null, queue = [];
+  const items = [...document.querySelectorAll('.v')];
+  function stop() {
+    if (!cur) return;
+    const a = cur.querySelector('audio'); a.pause(); a.currentTime = 0;
+    cur.classList.remove('on'); cur.querySelector('.bar i').style.width = '0';
+    cur = null;
+  }
+  function play(li) {
+    stop(); cur = li; li.classList.add('on');
+    const a = li.querySelector('audio');
+    a.play().catch(() => { li.classList.remove('on'); cur = null; });
+  }
+  items.forEach(li => {
+    const a = li.querySelector('audio'), bar = li.querySelector('.bar i');
+    li.querySelector('.play').addEventListener('click', () => { queue = []; cur === li ? stop() : play(li); });
+    a.addEventListener('timeupdate', () => { if (a.duration) bar.style.width = (a.currentTime / a.duration * 100) + '%'; });
+    a.addEventListener('ended', () => {
+      li.classList.remove('on'); bar.style.width = '0'; cur = null;
+      const next = queue.shift(); if (next) setTimeout(() => play(next), 450);
+    });
+  });
+  document.querySelectorAll('.all').forEach(btn => btn.addEventListener('click', () => {
+    queue = [...btn.closest('section').querySelectorAll('.v')];
+    play(queue.shift());
+  }));
+})();
+</script>
+</body>
+</html>
