@@ -27,6 +27,16 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
 .ctl { gap: calc(.8cqh + 6px); }
 .ctl-main { gap: calc(.8cqh + 9px); }
 .ring .prog { transition: stroke .3s; }
+/* TABATA a cicli (20/10): "CICLO 2/3" sotto il round, solo se i cicli sono più di uno (altrimenti nascosto: schermo come prima) */
+.v2 .ring .cycle {
+  position: absolute; bottom: 14.5%; left: 0; right: 0; display: flex; justify-content: center; align-items: baseline;
+  font: 700 3.3cqi/1 var(--sans); letter-spacing: .14em; color: #c9ccd1;
+}
+.v2 .ring .cycle b { font: 400 5.2cqi/1 "Factoria", serif; letter-spacing: 0; margin: 0 .3em 0 .45em; color: #fff; }
+.v2 .ring .cycle[hidden] { display: none; }
+/* con i cicli visibili round e ciclo salgono un po', per non toccare l'anello (con 1 ciclo la posizione del round è quella di prima) */
+.v2 .run.cycles .ring .round { bottom: 29%; }
+.v2 .run.cycles .ring .cycle { bottom: 19.5%; }
 
 /* in pausa le cifre pulsano */
 .run.paused .digits { animation: pulse 1.4s ease-in-out infinite; }
@@ -65,6 +75,16 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
 .v2 .tbox.editing input { background: rgba(255,214,10,.1); box-shadow: 0 0 0 1.5px rgba(255,214,10,.7); }
 .v2 .step:active, .ctl:active .knob, .icon-btn:active, .mode:active, .save:active, .tab:active { filter: brightness(1.25); }
 .v2 .step svg { stroke: currentColor; stroke-width: 3; stroke-linecap: round; fill: none; }
+
+/* TABATA ha 5 campi (dal 20/10, cicli): uno sotto l'altro non entrano sui telefoni piccoli (iPhone SE dentro Safari).
+   Solo in questa scheda NUMERO ROUND e NUMERO CICLI stanno affiancati (4 righe) e i numeri si restringono un po' prima. */
+.v2 .fields[data-n="5"] { display: grid; grid-template-columns: 1fr 1fr; align-content: center; column-gap: calc(var(--sw) * 3); row-gap: min(calc(var(--sh) * 2), 1.8cqh); }
+.v2 .fields[data-n="5"] .field { grid-column: 1 / -1; }
+.v2 .fields[data-n="5"] .field[data-key="rounds"], .v2 .fields[data-n="5"] .field[data-key="cycles"] { grid-column: auto; min-width: 0; }
+.v2 .fields[data-n="5"] .tbox input, .v2 .fields[data-n="5"] .colon { font-size: min(calc(var(--sw) * 11), calc(var(--sh) * 5.2), 8cqh); }
+.v2 .fields[data-n="5"] [data-key="rounds"] .f-row, .v2 .fields[data-n="5"] [data-key="cycles"] .f-row { gap: calc(var(--sw) * 1.2); }
+.v2 .fields[data-n="5"] [data-key="rounds"] .lcd, .v2 .fields[data-n="5"] [data-key="cycles"] .lcd { padding-left: var(--sw); padding-right: var(--sw); }
+.v2 .fields[data-n="5"] [data-key="rounds"] input, .v2 .fields[data-n="5"] [data-key="cycles"] input { font-size: min(calc(var(--sw) * 8.4), calc(var(--sh) * 5.2), 8cqh); }
 
 /* ---------- fine esercizio ---------- */
 .boom {
