@@ -128,6 +128,13 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
 .boom.blast .cloud { animation: cloud-in .7s .12s cubic-bezier(.2, 1.5, .4, 1) forwards, cloud-float 3s .9s ease-in-out infinite alternate; }
 .boom.blast .cloud-txt { animation: txt-in .35s .45s cubic-bezier(.2, 1.8, .4, 1) forwards; }
 .boom.done .boom-actions { opacity: 1; pointer-events: auto; transition: opacity .4s; }
+/* solo iPhone/iPad: a volte Safari non avvia l'animazione d'ingresso (visto al 2° giro dopo ANCORA) e con fill 'forwards'
+   nuvola e scritta restavano invisibili. Qui lo stato finale è statico (opacity 1, scala 1); l'animazione, se parte,
+   dà lo stesso effetto di prima ('both' copre anche l'attesa iniziale). Specificità più alta di .boom.blast .cloud. */
+.ios .boom.blast .cloud { opacity: 1; animation: cloud-in .7s .12s cubic-bezier(.2, 1.5, .4, 1) both, cloud-float 3s .9s ease-in-out infinite alternate; }
+.ios .boom.blast .cloud-txt { opacity: 1; animation: txt-in .35s .45s cubic-bezier(.2, 1.8, .4, 1) both; }
+.ios .boom.done .cloud { opacity: 1; scale: 1; animation: cloud-float 3s .9s ease-in-out infinite alternate; }
+.ios .boom.done .cloud-txt { opacity: 1; scale: 1; animation: none; }
 .run.shake > .ui, .run.shake > .bg { animation: shake .55s cubic-bezier(.36, .07, .19, .97) both; }
 
 @keyframes fade-in { from { opacity: 0; } }
