@@ -37,7 +37,7 @@
 
   /* ================= audio: bip generati, voci, esplosione ================= */
   const AUDIO_SESSION = 'playback';
-  const BOOM_GAIN = 0.6; // boom.m4a è a -10.3 LUFS: con 0.6 (-4.4 dB) sta a circa -14.7, un po' sopra le voci (-18)
+  const BOOM_GAIN = 0.6; // boom.m4a è a -10.3 LUFS: con 0.6 (-4.4 dB) sta a circa -14.7, sotto il picco delle voci (-11), che però suonano dopo il botto
   const AC = window.AudioContext || window.webkitAudioContext;
   // raw: i file scaricati (copie intatte), per poter ricreare il contesto audio e ridecodificarli quando iPhone lo rompe
   const audio = { ctx: null, out: null, voices: { start: [], finish: [] }, boom: null, raw: { start: [], finish: [], boom: null },
@@ -150,6 +150,9 @@
     s.start(s.at = ctx.currentTime + delay);
     return s;
   }
+  // la voce FINISH parte 0,5 s dopo la fine del botto: il botto parte a 1,1 s (insieme all'animazione) e dura quanto
+  // boom.m4a (1,79 s, usato finché il file non è decodificato)
+  const finishVoiceDelay = () => 1.1 + (audio.boom?.duration || 1.79) + 0.5;
 
   /* ===== app in secondo piano (iPhone): il JavaScript si ferma, il motore audio forse no ===== */
   // Si affidano subito al motore audio tutti i bip rimasti, più esplosione e voce finale: se iPhone tiene vivo l'audio
@@ -175,7 +178,7 @@
     if (Number.isFinite(run.end) && run.end > e) {
       const d = run.end - e;
       audio.bg.push(boomSound(d + 1.1));
-      if (run.mode === 'emom' || run.mode === 'tabata') audio.bg.push(playVoice('finish', d + 1.5));
+      if (run.mode === 'emom' || run.mode === 'tabata') audio.bg.push(playVoice('finish', d + finishVoiceDelay()));
       audio.bg = audio.bg.filter(Boolean);
       run.boomDone = audio.bg.length > 0; // l'esplosione è già affidata al motore audio: finish() non la ripete
     }
@@ -430,8 +433,8 @@
   function finish(late) {
     run.status = 'done';
     keepAwake(false);
-    // il file muto si ferma solo dopo l'esplosione: se la fine arriva in secondo piano serve ancora
-    setTimeout(() => { if (run.status !== 'running') keepAudioAlive(false); }, 3000);
+    // il file muto si ferma solo dopo esplosione e voce FINISH: se la fine arriva in secondo piano serve ancora
+    setTimeout(() => { if (run.status !== 'running') keepAudioAlive(false); }, (finishVoiceDelay() + 3) * 1000);
     render();
     explode(late < 2 && !run.boomDone);
   }
@@ -464,7 +467,7 @@
     boomEl.className = 'boom';
     if (withSound) {
       boomSound(1.1);
-      if (run.mode === 'emom' || run.mode === 'tabata') playVoice('finish', 1.5);
+      if (run.mode === 'emom' || run.mode === 'tabata') playVoice('finish', finishVoiceDelay());
     }
     boomTimers.push(setTimeout(() => {
       particles();
