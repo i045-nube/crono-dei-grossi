@@ -150,9 +150,9 @@
     s.start(s.at = ctx.currentTime + delay);
     return s;
   }
-  // la voce FINISH parte 0,5 s dopo la fine del botto: il botto parte a 1,1 s (insieme all'animazione) e dura quanto
-  // boom.m4a (1,79 s, usato finché il file non è decodificato)
-  const finishVoiceDelay = () => 1.1 + (audio.boom?.duration || 1.79) + 0.5;
+  // la voce FINISH parte 1,1 s dopo l'inizio del botto (a 1,1 s, insieme all'animazione), scelto a orecchio dall'utente:
+  // lì il botto sta scendendo (misurato su boom.m4a: -14 dB, poi -24 a 1,25 s); la coda quasi muta dura fino a 1,79 s
+  const finishVoiceDelay = () => 1.1 + 1.1;
 
   /* ===== app in secondo piano (iPhone): il JavaScript si ferma, il motore audio forse no ===== */
   // Si affidano subito al motore audio tutti i bip rimasti, più esplosione e voce finale: se iPhone tiene vivo l'audio
