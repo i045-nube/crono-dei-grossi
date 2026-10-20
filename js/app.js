@@ -160,6 +160,8 @@
   // solo su iPhone/iPad (gli iPad recenti si presentano come Mac con touch): su Android e altri non serve
   const IOS = !/Android/i.test(navigator.userAgent) &&
     (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+  // classe 'ios' sulla pagina: le regole CSS di ripiego per l'esplosione valgono solo su iPhone/iPad
+  if (IOS) document.documentElement.classList.add('ios');
   const keepAlive = AC && IOS ? new Audio('audio/silenzio.m4a') : null;
   if (keepAlive) { keepAlive.loop = true; keepAlive.preload = 'auto'; }
   function keepAudioAlive(on) {
@@ -465,12 +467,15 @@
     closeBoom();
     boomEl.hidden = false;
     boomEl.className = 'boom';
+    // iPhone (2° giro dopo ANCORA): forza il ricalcolo dello stile, così le animazioni ripartono da zero
+    if (IOS) void boomEl.offsetWidth;
     if (withSound) {
       boomSound(1.1);
       if (run.mode === 'emom' || run.mode === 'tabata') playVoice('finish', finishVoiceDelay());
     }
     boomTimers.push(setTimeout(() => {
       particles();
+      if (IOS) void boomEl.offsetWidth;
       boomEl.classList.add('blast');
       runEl.classList.add('shake');
     }, 1100));
