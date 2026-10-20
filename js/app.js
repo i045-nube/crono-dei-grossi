@@ -6,9 +6,12 @@
 
   /* ================= impostazioni salvate sul telefono ================= */
   const KEY = 'crono-dei-grossi';
-  const DEFAULTS = { emom: { round: 60, rounds: 10 }, tabata: { work: 20, rest: 10, rounds: 8 }, timer: { dur: 300 }, voices: true };
-  const LIMITS = { round: [5, 5999], work: [5, 5999], rest: [0, 5999], dur: [5, 5999], rounds: [1, 99] };
-  const STEP = { round: 5, work: 5, rest: 5, dur: 5, rounds: 1 };
+  // TABATA a cicli (20/10): cycles = quante volte si ripete il blocco di round; cycleRest = riposo tra un ciclo e l'altro.
+  // cycles 1 (predefinito) = TABATA di prima, identico. I salvataggi vecchi senza questi campi prendono i predefiniti (load).
+  const DEFAULTS = { emom: { round: 60, rounds: 10 }, tabata: { work: 20, rest: 10, rounds: 8, cycles: 1, cycleRest: 60 }, timer: { dur: 300 }, voices: true };
+  const LIMITS = { round: [5, 5999], work: [5, 5999], rest: [0, 5999], dur: [5, 5999], rounds: [1, 99], cycles: [1, 99], cycleRest: [0, 5999] };
+  const STEP = { round: 5, work: 5, rest: 5, dur: 5, rounds: 1, cycles: 1, cycleRest: 5 };
+  const COUNT = { rounds: 'ROUND', cycles: 'CICLI' }; // campi a numero (gli altri sono min:sec)
   const clone = o => JSON.parse(JSON.stringify(o));
 
   function load() {
@@ -28,7 +31,9 @@
 
   const fmtClock = s => s >= 3600 ? `${Math.floor(s / 3600)}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}` : `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
   const fmtTotal = s => s >= 3600 ? fmtClock(s) : `${Math.floor(s / 60)}:${pad(s % 60)}`;
-  const totalOf = (m, c) => m === 'emom' ? c.round * c.rounds : m === 'tabata' ? (c.work + c.rest) * c.rounds : c.dur;
+  // TABATA: tra un ciclo e l'altro il riposo tra cicli SOSTITUISCE il riposo dell'ultimo round (stessa regola di build)
+  const totalOf = (m, c) => m === 'emom' ? c.round * c.rounds
+    : m === 'tabata' ? (c.work + c.rest) * c.rounds * c.cycles + (c.cycles - 1) * (c.cycleRest - c.rest) : c.dur;
 
   /* ================= audio: bip generati, voci, esplosione ================= */
   const AUDIO_SESSION = 'playback';
@@ -236,21 +241,25 @@
   const PHASE = { ready: 'PRONTI', work: 'GO', rest: 'RIPOSO', up: 'GO' };
   const READY = 10;
   const C = 552.92; // circonferenza del cerchio (r = 88)
-  const runEl = $('#run'), digitsEl = $('#digits'), phaseEl = $('#phase'), progEl = $('#prog'), segEl = $('#segments');
-  const run = { mode: 'emom', segs: [], rounds: 0, end: 0, events: [], next: 0, status: 'idle', t0: 0, pausedAt: 0, boomDone: false };
+  const runEl = $('#run'), digitsEl = $('#digits'), phaseEl = $('#phase'), progEl = $('#prog'), segEl = $('#segments'), cycleEl = $('#cycle');
+  const run = { mode: 'emom', segs: [], rounds: 0, cycles: 1, end: 0, events: [], next: 0, status: 'idle', t0: 0, pausedAt: 0, boomDone: false };
 
   function build(mode) {
     // TIMER e CRONO partono subito, senza i 10 s di PRONTI
-    const segs = mode === 'emom' || mode === 'tabata' ? [{ kind: 'ready', dur: READY, round: 1 }] : [];
-    let rounds = 0;
+    const segs = mode === 'emom' || mode === 'tabata' ? [{ kind: 'ready', dur: READY, round: 1, cycle: 1 }] : [];
+    let rounds = 0, cycles = 1;
     if (mode === 'emom') {
       rounds = cfg.emom.rounds;
       for (let r = 1; r <= rounds; r++) segs.push({ kind: 'work', dur: cfg.emom.round, round: r });
     } else if (mode === 'tabata') {
       rounds = cfg.tabata.rounds;
-      for (let r = 1; r <= rounds; r++) {
-        segs.push({ kind: 'work', dur: cfg.tabata.work, round: r });
-        if (cfg.tabata.rest > 0) segs.push({ kind: 'rest', dur: cfg.tabata.rest, round: r });
+      cycles = cfg.tabata.cycles;
+      for (let c = 1; c <= cycles; c++) for (let r = 1; r <= rounds; r++) {
+        segs.push({ kind: 'work', dur: cfg.tabata.work, round: r, cycle: c });
+        // ultimo round di un ciclo che non è l'ultimo: al posto del riposo normale, il riposo tra cicli (0 = niente riposo).
+        // Dopo l'ultimo ciclo resta il riposo normale, come prima dei cicli. Il round resta quello del ciclo che finisce.
+        const rest = r === rounds && c < cycles ? cfg.tabata.cycleRest : cfg.tabata.rest;
+        if (rest > 0) segs.push({ kind: 'rest', dur: rest, round: r, cycle: c });
       }
     } else if (mode === 'timer') {
       segs.push({ kind: 'work', dur: cfg.timer.dur, round: 1 });
@@ -268,7 +277,7 @@
     // il bip lungo di partenza del segmento successivo sostituisce quello di fine; alla fine di tutto, bip finale
     if (Number.isFinite(t)) events.push({ t, type: 'end' });
     events.sort((a, b) => a.t - b.t);
-    Object.assign(run, { mode, segs, rounds, end: t, events, next: 0, boomDone: false });
+    Object.assign(run, { mode, segs, rounds, cycles, end: t, events, next: 0, boomDone: false });
   }
 
   const elapsed = () => run.status === 'running' ? (Date.now() - run.t0) / 1000 : run.status === 'paused' ? (run.pausedAt - run.t0) / 1000 : 0;
@@ -303,7 +312,7 @@
 
   function render() {
     const e = elapsed();
-    let phase = '', text, fill, round = 1, kind = 'idle', frac = 0;
+    let phase = '', text, fill, round = 1, cycle = 1, kind = 'idle', frac = 0;
     if (run.status === 'idle') {
       const first = run.segs.find(s => s.kind !== 'ready');
       text = fmtClock(Number.isFinite(first.dur) ? first.dur : 0);
@@ -313,11 +322,13 @@
       text = fmtClock(0);
       fill = 0;
       round = run.rounds;
+      cycle = run.cycles;
       frac = 1;
     } else {
       const s = segAt(e);
       kind = s.kind;
       round = s.round;
+      cycle = s.cycle || 1;
       phase = PHASE[kind];
       if (kind === 'up') {
         const up = Math.floor(e - s.start);
@@ -338,6 +349,10 @@
     progEl.style.strokeDashoffset = (C * (1 - Math.max(0, Math.min(1, fill)))).toFixed(1);
     $('#round-n').textContent = round;
     $('#round-t').textContent = run.rounds;
+    // il ciclo si vede solo se ce n'è più di uno: con 1 ciclo lo schermo è quello di prima
+    cycleEl.hidden = run.cycles <= 1;
+    runEl.classList.toggle('cycles', run.cycles > 1);
+    if (run.cycles > 1) { $('#cycle-n').textContent = cycle; $('#cycle-t').textContent = run.cycles; }
     renderSegments(round, frac);
     renderControls();
   }
@@ -535,7 +550,7 @@
   /* ================= impostazioni ================= */
   const FIELDS = {
     emom: [['round', 'DURATA ROUND'], ['rounds', 'NUMERO ROUND']],
-    tabata: [['work', 'LAVORO'], ['rest', 'RIPOSO'], ['rounds', 'NUMERO ROUND']],
+    tabata: [['work', 'LAVORO'], ['rest', 'RIPOSO'], ['rounds', 'NUMERO ROUND'], ['cycles', 'NUMERO CICLI'], ['cycleRest', 'RIPOSO TRA CICLI']],
     timer: [['dur', 'DURATA']],
   };
   const setUI = { tab: 'emom', from: 'home', draft: null };
@@ -547,8 +562,9 @@
   function renderFields() {
     const tab = setUI.tab;
     $$('.tab', $('#tabs')).forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    fieldsEl.dataset.n = FIELDS[tab].length; // 5 campi (TABATA): stile compatto in app.css
     fieldsEl.innerHTML = FIELDS[tab].map(([k, label]) => `<div class="field" data-key="${k}"><span class="f-lab">${label}</span><div class="f-row">
-      ${stepBtn(-1, 'Meno')}<div class="lcd">${k === 'rounds' ? box('n', 'ROUND', label) : box('m', 'MIN', `${label} minuti`) + '<span class="colon">:</span>' + box('s', 'SEC', `${label} secondi`)}</div>${stepBtn(1, 'Più')}
+      ${stepBtn(-1, 'Meno')}<div class="lcd">${COUNT[k] ? box('n', COUNT[k], label) : box('m', 'MIN', `${label} minuti`) + '<span class="colon">:</span>' + box('s', 'SEC', `${label} secondi`)}</div>${stepBtn(1, 'Più')}
     </div></div>`).join('');
     fillFields();
   }
@@ -565,7 +581,7 @@
   }
   function readField(f) {
     const k = f.dataset.key, num = p => parseInt($(`input[data-part="${p}"]`, f).value, 10) || 0;
-    return clamp(k, k === 'rounds' ? num('n') : num('m') * 60 + Math.min(59, num('s')));
+    return clamp(k, COUNT[k] ? num('n') : num('m') * 60 + Math.min(59, num('s')));
   }
   function commitField(f) {
     setUI.draft[setUI.tab][f.dataset.key] = readField(f);
