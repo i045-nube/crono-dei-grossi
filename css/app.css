@@ -164,3 +164,64 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
   .turn svg { width: 56px; height: 56px; animation: turn 2s ease-in-out infinite; }
 }
 @keyframes turn { 0%, 30% { rotate: 90deg; } 60%, 100% { rotate: 0deg; } }
+
+/* link PRIVACY (regola Apple 5.1.1): solo nell'app iPhone, dove app.js mette la classe 'native' sulla pagina */
+html:not(.native) .solo-app { display: none; }
+
+/* ---------- impostazioni: salva l'app sul telefono (27/10) ---------- */
+/* tasto in alto a destra: stesso tasto tondo dell'ingranaggio, con un LED giallo fisso. Nascosto (classe ghost, il posto resta
+   e il logo resta centrato) se l'app è già aperta dalla Home o se siamo nell'app iPhone: lo decide app.js */
+.install-btn { position: relative; }
+.v2 .install-btn svg { width: 52%; height: 52%; } /* disegno più fitto dell'ingranaggio: un po' più grande per leggerlo a 44 px */
+.install-btn::after {
+  content: ""; position: absolute; top: 6%; right: 6%; width: 7px; height: 7px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff7b0, var(--y) 55%, #d89a00);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.7), 0 0 6px 1px rgba(255,214,10,.75);
+}
+/* pannello dal basso, sopra le impostazioni */
+.sheet { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: flex-end; }
+.sheet[hidden] { display: none; }
+.sheet-dim { position: absolute; inset: 0; background: rgba(0,0,0,.62); animation: fade-in .25s ease-out both; }
+/* placca d'acciaio come quelle della Home (acciaio.css .mode), viti negli angoli in alto */
+.sheet-plate {
+  position: relative; display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: min(7cqw, 3.4cqh) calc(var(--gut) + 2cqw) calc(var(--sab) + min(3cqw, 1.5cqh)); border-radius: 22px 22px 0 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px),
+    linear-gradient(155deg, #45484e 0%, #25272b 42%, #18191c 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 0 0 1px #0a0a0b, 0 -14px 30px -6px rgba(0,0,0,.85);
+  animation: sheet-in .25s cubic-bezier(.2, .8, .3, 1) both;
+}
+.sheet-plate::after {
+  content: ""; position: absolute; top: 12px; left: 12px; right: 12px; height: 10px; pointer-events: none;
+  background:
+    radial-gradient(circle at 5px 5px, #9a9ea5 0 2.4px, #1a1b1d 2.6px 3.4px, transparent 3.6px) top left / 10px 10px no-repeat,
+    radial-gradient(circle at 5px 5px, #9a9ea5 0 2.4px, #1a1b1d 2.6px 3.4px, transparent 3.6px) top right / 10px 10px no-repeat;
+}
+/* icona vera dell'app con angoli da icona del telefono; sopra, la freccia gialla che scende una volta */
+.sheet-ico { position: relative; width: min(22cqw, 12cqh); margin-top: min(7cqw, 3.6cqh); }
+.sheet-ico img { display: block; width: 100%; aspect-ratio: 1; border-radius: 23%; box-shadow: 0 0 0 1px #000, 0 10px 22px rgba(0,0,0,.8); }
+.sheet-arrow {
+  position: absolute; left: 50%; bottom: 100%; width: 40%; translate: -50% 4%; color: var(--y);
+  filter: drop-shadow(0 0 6px rgba(255,214,10,.6)); animation: sheet-arrow .6s .2s cubic-bezier(.3, 1.4, .5, 1) both;
+}
+.sheet-title {
+  margin-top: min(4.4cqw, 2.2cqh); font: 400 min(5.2cqw, 3.1cqh)/1.15 "Factoria", serif; letter-spacing: .04em; color: var(--y);
+  text-shadow: 0 0 14px rgba(255,200,0,.45), 0 2px 0 #000; text-wrap: balance;
+}
+.sheet-txt, .sheet-how {
+  margin-top: min(3cqw, 1.5cqh); max-width: 34em; font: 500 max(13px, min(3.8cqw, 1.9cqh))/1.4 var(--sans); color: #c9ccd1; text-wrap: pretty;
+}
+.sheet-how { color: #fff; }
+.sheet-how[hidden] { display: none; }
+.sheet-how svg { display: inline-block; width: 1.25em; height: 1.25em; vertical-align: -.25em; margin: 0 .1em; color: var(--y); }
+/* carattere un po' più piccolo di SALVA: la scritta è lunga e deve stare su una riga anche sui telefoni alti */
+.v2 .sheet-go { align-self: stretch; margin-top: min(6cqw, 3cqh); font-size: min(5.6cqw, 3.4cqh); white-space: nowrap; }
+.sheet-later {
+  margin-top: min(2.4cqw, 1.2cqh); padding: 1.2cqh 6cqw; min-height: 44px;
+  font: 700 max(11px, min(3cqw, 1.45cqh))/1 var(--sans); letter-spacing: .22em; color: #8d9197;
+}
+.sheet-later[hidden] { display: none; }
+@keyframes sheet-in { from { translate: 0 100%; } }
+@keyframes sheet-arrow { from { opacity: 0; translate: -50% -70%; } }
+@media (prefers-reduced-motion: reduce) { .sheet-dim, .sheet-plate, .sheet-arrow { animation: none; } }
