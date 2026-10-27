@@ -38,7 +38,7 @@
       <button class="mode m-crono" data-mode="crono"><span class="mode-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M9.5 2.5h5M12 2.5V6M18.5 6l1.5-1.5"/></svg></span><span class="mode-name">CRONO</span></button>
     </nav>
     <p class="motto">ZERO SCUSE!</p>
-    <footer class="foot"><a href="https://www.andrearighetti.fit/" target="_blank" rel="noopener">ANDREARIGHETTI.FIT</a></footer>
+    <footer class="foot"><a href="https://www.andrearighetti.fit/" target="_blank" rel="noopener">ANDREARIGHETTI.FIT</a><a class="solo-app" href="https://www.andrearighetti.fit/privacy-app/" target="_blank" rel="noopener">PRIVACY</a></footer>
   </div>
 </section>
 
@@ -122,7 +122,7 @@
     <header class="top bar">
       <button class="icon-btn" data-back aria-label="Indietro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
       <img class="logo" src="assets/logo-ombra.png" alt="Andrea Righetti Calisthenics Academy">
-      <span class="icon-btn ghost"></span>
+      <button class="icon-btn install-btn ghost" id="btn-install" aria-label="Salva l'app sul telefono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-install"/></svg></button>
     </header>
     <nav class="tabs" id="tabs">
       <button class="tab" data-tab="emom">EMOM</button><button class="tab" data-tab="tabata">TABATA</button><button class="tab" data-tab="timer">TIMER</button>
@@ -130,6 +130,22 @@
     <div class="fields" id="fields"></div>
     <p class="total">DURATA TOTALE <b id="total">0:00</b></p>
     <button class="save" id="btn-save">SALVA</button>
+  </div>
+
+  <!-- salva l'app sul telefono -->
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-dim" data-sheet-close></div>
+    <div class="sheet-plate" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-ico">
+        <svg class="sheet-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v15M6.5 12.5L12 18l5.5-5.5"/></svg>
+        <img src="assets/icona-192.png" alt="">
+      </div>
+      <h2 class="sheet-title" id="sheet-title">SALVA L'APP SUL TELEFONO</h2>
+      <p class="sheet-txt">Un tocco e il Crono è sulla Home come un'app vera: tutto schermo, parte subito e funziona anche senza internet.</p>
+      <p class="sheet-how" id="sheet-how" hidden></p>
+      <button class="save sheet-go" id="sheet-go">SALVA SUL TELEFONO</button>
+      <button class="sheet-later" id="sheet-later" data-sheet-close>NON ORA</button>
+    </div>
   </div>
 </section>
 
@@ -143,6 +159,11 @@
   <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4.2" height="15" rx="1.2"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></symbol>
+  <!-- salva l'app (disegno di Albino, 27/10): freccia gialla che entra nella Home di un telefono e punta al posto giallo tra le app;
+       sotto: menu ⋮ di Android e Condividi di iPhone per i passi a mano -->
+  <symbol id="i-install" viewBox="0 0 24 24"><rect x="10" y="2.5" width="11" height="19" rx="2.6"/><g stroke="none" fill="currentColor"><rect x="12.2" y="5" width="2.6" height="2.6" rx=".7"/><rect x="16.2" y="5" width="2.6" height="2.6" rx=".7"/><rect x="12.2" y="9" width="2.6" height="2.6" rx=".7"/></g><rect x="16.2" y="9" width="2.6" height="2.6" rx=".7" stroke="none" style="fill: var(--y)"/><path d="M3.5 13C3.5 19 9.6 19.4 14.8 14.2M12.2 14.2h2.6v2.6" style="stroke: var(--y)"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="12" cy="19" r="2.2"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M8.5 9.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7.5a2 2 0 0 0-2-2h-1.5M12 14.5V2.5M8.5 6L12 2.5 15.5 6"/></symbol>
 </svg>
 
 <script src="js/app.js"></script>
