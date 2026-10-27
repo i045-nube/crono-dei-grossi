@@ -39,11 +39,15 @@
   const AUDIO_SESSION = 'playback';
   const BOOM_GAIN = 0.6; // boom.m4a è a -10.3 LUFS: con 0.6 (-4.4 dB) sta a circa -14.7, sotto il picco delle voci (-11), che però suonano dopo il botto
   const AC = window.AudioContext || window.webkitAudioContext;
+  // app iPhone (Capacitor): bip, voci ed esplosione li suona il nativo (blocco "app iPhone" più sotto). Nella web app è sempre falso.
+  const NATIVE = !!window.Capacitor?.isNativePlatform?.();
+  if (NATIVE) document.documentElement.classList.add('native');
   // raw: i file scaricati (copie intatte), per poter ricreare il contesto audio e ridecodificarli quando iPhone lo rompe
   const audio = { ctx: null, out: null, voices: { start: [], finish: [] }, boom: null, raw: { start: [], finish: [], boom: null },
     last: {}, pending: [], voiceSrc: null, stale: false, bg: null };
 
   function initAudio() {
+    if (NATIVE) { nativeInit(); return; } // niente navigator.audioSession né AudioContext: toglierebbero il mix con Spotify
     // iPhone (Safari 17+): 'playback' si sente anche col telefono in silenzioso ma ferma la musica di altre app;
     // 'transient' lascia suonare la musica ma col silenzioso i bip non si sentono. Va impostata prima del contesto.
     try { if (navigator.audioSession) navigator.audioSession.type = AUDIO_SESSION; } catch { /* non supportato */ }
@@ -91,6 +95,7 @@
   // iPhone e Android fanno partire l'audio solo dopo un tocco: lo si sblocca premendo START o Riprendi,
   // non al primo tocco qualsiasi, per non disturbare la musica di altre app finché non si parte
   function unlockAudio() {
+    if (NATIVE) { natCall('ensureAudio'); return; }
     if (!AC) return;
     // tornati da un'altra app il contesto può restare muto anche se dice 'running' (iPhone):
     // al primo tocco utile lo si ricrea, perché solo dentro un tocco iPhone lo lascia ripartire
@@ -106,8 +111,14 @@
   function beep(type, delay) {
     const ctx = audio.ctx;
     if (!ctx) return;
-    const t = ctx.currentTime + delay;
-    const len = type === 'short' ? 0.16 : type === 'long' ? 0.65 : 1.0;
+    const o = beepNode(ctx, audio.out, type, ctx.currentTime + delay);
+    audio.pending.push(o);
+    o.onended = () => { audio.pending = audio.pending.filter(x => x !== o); };
+  }
+  // il bip vero e proprio: lo usano beep() e la registrazione dei suoni per l'app iPhone (nativeInit), così sono identici
+  const beepLen = type => type === 'short' ? 0.16 : type === 'long' ? 0.65 : 1.0;
+  function beepNode(ctx, out, type, t) {
+    const len = beepLen(type);
     const freq = type === 'short' ? 880 : 1320;
     const o = ctx.createOscillator(), g = ctx.createGain();
     o.type = 'square';
@@ -116,12 +127,11 @@
     g.gain.linearRampToValueAtTime(0.32, t + 0.006);
     g.gain.setValueAtTime(0.32, t + len - 0.03);
     g.gain.linearRampToValueAtTime(0, t + len);
-    o.connect(g).connect(audio.out);
+    o.connect(g).connect(out);
     o.start(t);
     o.stop(t + len + 0.02);
     o.at = t;
-    audio.pending.push(o);
-    o.onended = () => { audio.pending = audio.pending.filter(x => x !== o); };
+    return o;
   }
   function cancelBeeps() { for (const o of audio.pending) try { o.stop(); } catch { /* già fermo */ } audio.pending = []; }
 
@@ -138,7 +148,7 @@
     audio.voiceSrc = s;
     return s;
   }
-  function stopVoice() { try { audio.voiceSrc?.stop(); } catch { /* già finita */ } audio.voiceSrc = null; }
+  function stopVoice() { if (NATIVE) { natCall('stopVoice'); return; } try { audio.voiceSrc?.stop(); } catch { /* già finita */ } audio.voiceSrc = null; }
 
   function boomSound(delay) {
     const ctx = audio.ctx;
@@ -162,14 +172,16 @@
     (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
   // classe 'ios' sulla pagina: le regole CSS di ripiego per l'esplosione valgono solo su iPhone/iPad
   if (IOS) document.documentElement.classList.add('ios');
-  const keepAlive = AC && IOS ? new Audio('audio/silenzio.m4a') : null;
+  const keepAlive = AC && IOS && !NATIVE ? new Audio('audio/silenzio.m4a') : null; // nell'app iPhone tiene vivo l'audio il motore nativo
   if (keepAlive) { keepAlive.loop = true; keepAlive.preload = 'auto'; }
   function keepAudioAlive(on) {
+    if (NATIVE) { natCall('keepAlive', { on }); return; }
     if (!keepAlive) return;
     try { if (on) keepAlive.play().catch(() => {}); else keepAlive.pause(); } catch { /* non supportato */ }
   }
 
   function scheduleBackground() {
+    if (NATIVE) return; // il nativo ha già tutto il giro dallo START
     if (!audio.ctx || run.status !== 'running' || audio.bg) return;
     const e = elapsed();
     for (; run.next < run.events.length; run.next++) {
@@ -209,6 +221,7 @@
   }
 
   function onForeground() {
+    if (NATIVE) { natCall('ensureAudio'); return; }
     if (run.status !== 'running') return;
     leaveBackground();
     const ctx = audio.ctx;
@@ -227,9 +240,113 @@
     document.addEventListener('click', onTouch, true);
   }
 
+  /* ===== app iPhone (Capacitor): l'audio lo suona il nativo (CronoNative, ios-app/ios/App/App/SceneDelegate.swift) ===== */
+  // Perché (prova del 27/10, ios-app/PIANO_APP_IPHONE.md): in secondo piano WebKit sospende l'AudioContext, il nativo no.
+  // Suoni identici: all'avvio si "registrano" qui con OfflineAudioContext, con la stessa catena di sopra (beepNode,
+  // BOOM_GAIN, compressore con i parametri predefiniti come newContext), e si passano al nativo. Il nativo li suona
+  // alle ore assolute run.t0 + t (Date.now() è lo stesso orologio in JS e in Swift), anche col JavaScript fermo.
+  // Il finale (boom + voce FINISH a +1,1 s) si registra in un pezzo solo per voce: misurato il 27/10, registrati
+  // separati differiscono di 1,5-2,2 dB all'attacco della voce (il compressore lavora sui due suoni insieme).
+  // La web app non passa mai di qui.
+  const NAT_RATE = 48000;
+  const nat = { count: { start: 0, finish: 0 }, runId: 0, finish: -1 };
+  const natCall = (method, opts = {}) => window.Capacitor.nativePromise('CronoNative', method, opts).catch(() => null);
+
+  async function natRender(dur, draw) {
+    const ctx = new OfflineAudioContext(1, Math.ceil(dur * NAT_RATE), NAT_RATE);
+    const out = ctx.createDynamicsCompressor();
+    out.connect(ctx.destination);
+    draw(ctx, out);
+    return (await ctx.startRendering()).getChannelData(0);
+  }
+  // come playVoice (voce collegata dritta al compressore) e boomSound (con BOOM_GAIN)
+  function natVoice(ctx, out, buf, t) { const s = ctx.createBufferSource(); s.buffer = buf; s.connect(out); s.start(t); }
+  function natBoom(ctx, out, buf, t) {
+    const s = ctx.createBufferSource(), g = ctx.createGain();
+    s.buffer = buf;
+    g.gain.value = BOOM_GAIN;
+    s.connect(g).connect(out);
+    s.start(t);
+  }
+  function natB64(f32) {
+    const u8 = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+    let s = '';
+    for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+  const natLoad = (id, f32) => natCall('load', { id, rate: NAT_RATE, pcm: natB64(f32) });
+
+  async function nativeInit() {
+    const TAIL = 0.1; // coda dopo il suono: il compressore ritarda l'uscita di 6 ms
+    const get = url => fetch(url).then(r => r.arrayBuffer()).catch(() => null);
+    const dec = b => b ? new OfflineAudioContext(1, 1, NAT_RATE).decodeAudioData(b).catch(() => null) : null;
+    for (const type of ['short', 'long', 'end']) await natLoad(`beep-${type}`, await natRender(beepLen(type) + TAIL, (c, o) => beepNode(c, o, type, 0)));
+    let list = {};
+    try { list = await (await fetch('audio/voci.json')).json(); } catch { /* senza elenco: niente voci */ }
+    const boom = await dec(await get('audio/boom.m4a'));
+    const voices = {};
+    for (const kind of ['start', 'finish']) voices[kind] = (await Promise.all((list[kind] || []).map(u => get(u).then(dec)))).filter(Boolean);
+    for (const [i, v] of voices.start.entries()) {
+      await natLoad(`start-${i}`, await natRender(v.duration + TAIL, (c, o) => natVoice(c, o, v, 0)));
+      nat.count.start = i + 1;
+    }
+    if (!boom) return;
+    await natLoad('finale-boom', await natRender(boom.duration + TAIL, (c, o) => natBoom(c, o, boom, 0)));
+    // finale = boom a 0 + voce FINISH a 1,1 s (in app.js: boomSound(1.1) e playVoice('finish', 1.1 + 1.1))
+    const off = finishVoiceDelay() - 1.1;
+    for (const [i, v] of voices.finish.entries()) {
+      await natLoad(`finale-${i}`, await natRender(Math.max(boom.duration, off + v.duration) + TAIL, (c, o) => { natBoom(c, o, boom, 0); natVoice(c, o, v, off); }));
+      nat.count.finish = i + 1;
+    }
+  }
+
+  // come playVoice: a caso, mai la stessa di prima
+  function natPick(kind) {
+    const n = nat.count[kind];
+    if (!n) return -1;
+    let i;
+    do i = Math.floor(Math.random() * n); while (n > 1 && i === audio.last[kind]);
+    audio.last[kind] = i;
+    return i;
+  }
+  // il piano del giro per il nativo. Funzione pura (provata da ios-app/test/test_native_plan.mjs).
+  // Voci solo in EMOM e TABATA e solo con le voci attive (come start() ed explode()); START solo all'avvio (fromT 0).
+  function nativePlan(r, runId, fromT, voices, startIdx, finishIdx) {
+    const voiced = voices && (r.mode === 'emom' || r.mode === 'tabata');
+    return {
+      runId, t0: r.t0, fromT,
+      events: r.events.flatMap(ev => [ev.t, ev.type]),
+      end: Number.isFinite(r.end) ? r.end : null,
+      startVoice: voiced && fromT === 0 ? startIdx : -1,
+      finaleVoice: voiced ? finishIdx : -1,
+    };
+  }
+  function nativeSchedule(fromT, startIdx = -1) {
+    natCall('schedule', nativePlan(run, nat.runId, fromT, cfg.voices, startIdx, nat.finish));
+    run.boomDone = true; // esplosione e voce FINISH sono nel piano del nativo: explode() non le ripete
+  }
+  function nativeStart() {
+    nat.runId++;
+    const voiced = cfg.voices && (run.mode === 'emom' || run.mode === 'tabata');
+    const startIdx = voiced ? natPick('start') : -1;
+    nat.finish = run.mode === 'emom' || run.mode === 'tabata' ? natPick('finish') : -1; // scelta ora: serve se le voci si riaccendono a metà
+    nativeSchedule(0, startIdx);
+  }
+
+  // copertina d'avvio (CopertinaAvvio in SceneDelegate.swift): il nativo la toglie quando la pagina è davvero disegnata,
+  // cioè dopo load (immagini e fogli di stile), i caratteri (Factoria ha font-display: block: prima i titoli sono
+  // invisibili) e due fotogrammi (il primo requestAnimationFrame arriva prima del disegno, il secondo dopo).
+  // Se il segnale non arriva, il nativo la toglie comunque dopo 15 s. Provata da ios-app/test/test_avvio_pronto.mjs.
+  function nativeReady() {
+    const loaded = document.readyState === 'complete' ? Promise.resolve() : new Promise(r => window.addEventListener('load', r, { once: true }));
+    loaded.then(() => document.fonts?.ready).catch(() => {})
+      .then(() => requestAnimationFrame(() => requestAnimationFrame(() => natCall('ready'))));
+  }
+
   /* ================= schermo sempre acceso durante l'allenamento ================= */
   let wake = null;
   async function keepAwake(on) {
+    if (NATIVE) { natCall('keepAwake', { on }); return; }
     try {
       if (on && !wake && 'wakeLock' in navigator && document.visibilityState === 'visible') {
         wake = await navigator.wakeLock.request('screen');
@@ -370,6 +487,7 @@
   }
 
   function scheduleBeeps(e) {
+    if (NATIVE) return; // i bip li programma il nativo (nativeSchedule)
     while (run.next < run.events.length && run.events[run.next].t <= e + 0.3) {
       const ev = run.events[run.next++];
       if (e - ev.t > 0.3) continue; // perso mentre l'app era in secondo piano
@@ -399,6 +517,7 @@
     run.status = 'running';
     run.t0 = Date.now();
     if (run.mode === 'emom' || run.mode === 'tabata') playVoice('start');
+    if (NATIVE) nativeStart();
     keepAwake(true);
     keepAudioAlive(true);
     loop();
@@ -408,6 +527,7 @@
     run.status = 'paused';
     run.pausedAt = Date.now();
     cancelBeeps();
+    if (NATIVE) natCall('cancel', { keepVoice: true }); // come la web app: la voce START finisce di parlare
     keepAudioAlive(false);
     render();
   }
@@ -416,6 +536,7 @@
     run.t0 += Date.now() - run.pausedAt;
     run.status = 'running';
     realign();
+    if (NATIVE) nativeSchedule(elapsed());
     keepAwake(true);
     keepAudioAlive(true);
     loop();
@@ -426,6 +547,7 @@
     closeBoom();
     for (const n of audio.bg || []) try { n.stop(); } catch { /* già fermo */ }
     audio.bg = null;
+    if (NATIVE) natCall('cancel', { keepVoice: false });
     keepAudioAlive(false);
     run.status = 'idle';
     build(run.mode);
@@ -673,9 +795,59 @@
   $$('.voice-btn').forEach(b => b.addEventListener('click', () => {
     cfg.voices = !cfg.voices;
     if (!cfg.voices) stopVoice();
+    else if (NATIVE && run.status === 'running') natCall('setFinaleVoice', { voice: nativePlan(run, nat.runId, 1, true, -1, nat.finish).finaleVoice });
     store();
     renderVoice();
   }));
+
+  /* ================= salva l'app sul telefono (tasto nelle impostazioni, 27/10) ================= */
+  // Chrome/Android manda beforeinstallprompt quando l'app si può installare: lo si tiene da parte (niente barra automatica)
+  // e lo si usa col tasto giallo del pannello. Senza l'evento (iPhone, Firefox, o non ancora arrivato) il pannello
+  // mostra i passi a mano. Il pannello ha una sua voce nella cronologia: il tasto indietro di Android chiude solo lui.
+  const installBtn = $('#btn-install'), sheetEl = $('#sheet');
+  let installPrompt = null, installed = false;
+  const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  function renderInstall() { installBtn.classList.toggle('ghost', NATIVE || installed || standalone()); }
+  function renderSheet() {
+    const how = $('#sheet-how');
+    how.hidden = !!installPrompt;
+    how.innerHTML = IOS
+      ? 'Tocca Condividi <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="(icona quadrato con freccia in su)"><use href="#i-share"/></svg> e poi «Aggiungi alla schermata Home».'
+      : 'Apri il menu <svg viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="⋮"><use href="#i-dots"/></svg> del browser e tocca «Aggiungi a schermata Home» o «Installa app».';
+    $('#sheet-go').textContent = installPrompt ? 'SALVA SUL TELEFONO' : 'HO CAPITO';
+    $('#sheet-later').hidden = !installPrompt; // con HO CAPITO un secondo tasto per chiudere non serve
+  }
+  // la chiusura vera la fa popstate; closing evita un secondo passo indietro con un doppio tocco (uscirebbe dalle impostazioni)
+  let closing = false;
+  function closeSheet() { if (sheetEl.hidden || closing) return; closing = true; history.back(); }
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    installPrompt = e;
+    if (!sheetEl.hidden) renderSheet();
+  });
+  window.addEventListener('appinstalled', () => {
+    installed = true;
+    installPrompt = null;
+    renderInstall();
+  });
+  installBtn.addEventListener('click', () => {
+    document.activeElement?.blur();
+    renderSheet();
+    history.pushState({ ...history.state, sheet: true }, '');
+    closing = false;
+    sheetEl.hidden = false;
+  });
+  $('#sheet-go').addEventListener('click', async () => {
+    const p = installPrompt;
+    if (!p) { closeSheet(); return; }
+    installPrompt = null; // il prompt si può usare una volta sola
+    try {
+      await p.prompt();
+      if ((await p.userChoice).outcome === 'accepted') { installed = true; renderInstall(); }
+    } catch { /* già usato o non più valido */ }
+    closeSheet();
+  });
+  $$('[data-sheet-close]', sheetEl).forEach(b => b.addEventListener('click', closeSheet));
 
   /* ================= schermate e tasto "indietro" (anche quello di Android) ================= */
   const screens = { home: $('#home'), run: runEl, set: $('#set') };
@@ -689,6 +861,10 @@
     document.activeElement?.blur();
     if (st.s !== 'run' && st.s !== 'set' && run.status !== 'idle') reset();
     if (st.s === 'set' && !setUI.draft) { history.back(); return; }
+    // pannello "salva l'app": si chiude a ogni passo indietro; tornando avanti sulla sua voce si torna indietro (come sopra)
+    sheetEl.hidden = true;
+    closing = false;
+    if (st.sheet) { history.back(); return; }
     show(st.s);
     if (st.s === 'run') render();
     reloadIfDue();
@@ -707,7 +883,9 @@
   history.replaceState({ s: 'home' }, '');
   show('home');
   renderVoice();
+  renderInstall();
   openRun('emom');
+  if (NATIVE) nativeReady();
   initAudio();
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') {
